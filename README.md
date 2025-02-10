@@ -78,7 +78,7 @@ hydra-node \
   --api-host 127.0.0.1 \
   --api-port 4001 \
   --persistence-dir ./hydra-data \
-  --network-id 1097911063 \
+  --network-id 2 \
   --cardano-signing-key ./testnet-skey.skey \
   --cardano-verification-key ./testnet-vkey.vkey \
   --cardano-node-socket ./db/node.socket \
@@ -95,7 +95,7 @@ Once the Hydra Head is running, you can **commit UTxOs and perform game transact
 ```bash
 hydra-tx commit \
   --tx-in <INPUT_UTXO> \
-  --testnet-magic 1097911063 \
+  --testnet-magic 2 \
   --out-file commit_tx.raw
 ```
 
@@ -104,7 +104,7 @@ hydra-tx commit \
 hydra-tx build \
   --tx-in <COMMITTED_UTXO> \
   --tx-out <GAME_ADDRESS>+1000000 \
-  --testnet-magic 1097911063 \
+  --testnet-magic 2 \
   --out-file bet_tx.raw
 ```
 
