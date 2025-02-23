@@ -1,15 +1,23 @@
 #!/bin/bash
 
-# Set environment variables
-export PATH=$(pwd)/infra/node/bin:$PATH
-export GENESIS_VERIFICATION_KEY=$(curl https://raw.githubusercontent.com/input-output-hk/mithril/main/mithril-infra/configuration/release-preprod/genesis.vkey 2> /dev/null)
-export AGGREGATOR_ENDPOINT=https://aggregator.release-preprod.api.mithril.network/aggregator
-export CARDANO_NODE_SOCKET_PATH=$(pwd)/infra/node/preprod/node.socket
-export CARDANO_NODE_NETWORK_ID=1
-export DYLD_FALLBACK_LIBRARY_PATH=$(pwd)/infra/node/bin
+# Source environment variables with debug output
+if [[ -f ".env" ]]; then
+    echo "Found .env file in current directory"
+    set -a  # automatically export all variables
+    source .env
+    set +a
+elif [[ -f "../.env" ]]; then
+    echo "Found .env file in parent directory"
+    set -a  # automatically export all variables
+    source ../.env
+    set +a
+else
+    echo "Error: .env file not found. Please run scripts/utils/set-env-vars.sh first"
+    exit 1
+fi
 
 # Navigate to preprod directory
-cd infra/node/preprod
+cd ${NODE_DIR}/preprod
 
 # Check if the database directory exists
 if [ ! -d "db" ]; then

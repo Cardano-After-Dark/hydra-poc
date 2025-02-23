@@ -1,29 +1,36 @@
 #!/bin/bash
 
-# Set environment variables
-export PATH=$(pwd)/infra/node/bin:$PATH
-export CARDANO_NODE_SOCKET_PATH=$(pwd)/infra/node/preprod/node.socket
-export CARDANO_NODE_NETWORK_ID=1
-export DYLD_FALLBACK_LIBRARY_PATH=$(pwd)/infra/node/bin
-
-if [ ! -d "infra/persistence" ]; then
-    mkdir -p infra/persistence
+# Source environment variables with debug output
+if [[ -f ".env" ]]; then
+    echo "Found .env file in current directory"
+    set -a  # automatically export all variables
+    source .env
+    set +a
+elif [[ -f "../.env" ]]; then
+    echo "Found .env file in parent directory"
+    set -a  # automatically export all variables
+    source ../.env
+    set +a
+else
+    echo "Error: .env file not found. Please run scripts/utils/set-env-vars.sh first"
+    exit 1
 fi
 
-hydra_version=0.20.0
+HYDRA_SCRIPTS_TX_ID=$(curl https://raw.githubusercontent.com/cardano-scaling/hydra/master/networks.json | jq -r ".preprod.\"${HYDRA_VERSION}\"")
+
 hydra-node \
   --node-id "bob-node" \
-  --persistence-dir infra/persistence/persistence-bob \
-  --cardano-signing-key infra/credentials/bob/bob-node.sk \
-  --hydra-signing-key infra/credentials/bob/bob-hydra.sk \
-  --hydra-scripts-tx-id $(curl https://raw.githubusercontent.com/cardano-scaling/hydra/master/networks.json | jq -r ".preprod.\"${hydra_version}\"") \
-  --ledger-protocol-parameters infra/params/protocol-parameters.json \
-  --testnet-magic 1 \
-  --node-socket $(pwd)/infra/node/preprod/node.socket \
-  --api-port 4002 \
+  --persistence-dir "${PERSISTENCE_DIR}/persistence-bob" \
+  --cardano-signing-key "${CREDENTIALS_DIR}/bob/bob-node.sk" \
+  --hydra-signing-key "${CREDENTIALS_DIR}/bob/bob-hydra.sk" \
+  --hydra-scripts-tx-id "${HYDRA_SCRIPTS_TX_ID}" \
+  --ledger-protocol-parameters "${PARAMS_DIR}/protocol-parameters.json" \
+  --testnet-magic "${TESTNET_MAGIC}" \
+  --node-socket "${CARDANO_NODE_SOCKET_PATH}" \
+  --api-port "${BOB_API_PORT}" \
   --host 0.0.0.0 \
   --api-host 0.0.0.0 \
-  --port 5002 \
-  --peer 127.0.0.1:5001 \
-  --hydra-verification-key infra/credentials/alice/alice-hydra.vk \
-  --cardano-verification-key infra/credentials/alice/alice-node.vk
+  --port "${BOB_PORT}" \
+  --peer "127.0.0.1:${ALICE_PORT}" \
+  --hydra-verification-key "${CREDENTIALS_DIR}/alice/alice-hydra.vk" \
+  --cardano-verification-key "${CREDENTIALS_DIR}/alice/alice-node.vk"

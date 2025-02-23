@@ -106,52 +106,25 @@ Wait until `syncProgress` reaches "100.00" before proceeding.
 Generate cryptographic credentials for preprod funding wallet:
 
 ```bash
-./setup-funding-credentials.sh
+./setup-and-fund-nodes.sh
 ```
 
 This will create a Cardano key pair for the funding wallet and generate an address. Preprod tADA can be obtained from the [Cardano Testnet Faucet](https://docs.cardano.org/cardano-testnets/tools/faucet/) with this address as the recipient.
 
 
-Verify the funds have been received by the funding wallet:
+The script will query the blockchain every 10 seconds until the funding wallet has enough funds or until a timeout of 5 minutes is reached. Once the funding wallet has enough funds, the script will create key pairs for the participants, generate addresses for all key pairs, and build a transaction to send 1000000000 lovelace from the funding wallet to the participants' node and funds addresses. It will also create a Hydra key pair for each participant.
+
+You can verify the funds have been received by the participants:
 
 ```bash
-./query-funding-addr.sh
-```
-
-Generate cryptographic credentials for both participants (alice and bob):
-
-```bash
-./setup-node-credentials.sh
-```
-
-This script:
-1. Creates Cardano key pairs for Alice and Bob (both node and funds)
-2. Generates addresses for all key pairs
-3. Builds a transaction to send 1000000000 lovelace from the funding wallet to the participants' node and funds addresses
-4. Signs the transaction
-5. Submits the transaction to the Cardano network
-
-
-Verify the funds have been received by the participants:
-
-```bash
-./query-node-funds.sh
+./scripts/utils/query-node-funds.sh
 ```
 
 Look for output showing the UTxOs at each address with their respective balances.
 
 ## Setting Up Hydra Nodes
 
-Generate the cryptographic keys needed for Hydra:
-
-```bash
-./setup-hydra-keys.sh
-```
-
-This script:
-1. Creates Hydra key pairs for both Alice and Bob
-2. Configures protocol parameters for the Hydra head (zero fees for testing)
-3. Prepares persistence directories for the nodes
+Since the Hydra key pairs were generated in the setup script, we can start the Hydra nodes.
 
 Now start the Hydra nodes in separate terminal windows:
 
@@ -200,7 +173,7 @@ You'll see a `HeadIsInitializing` message in the WebSocket output.
 Next, commit funds to the head:
 
 ```bash
-./commit-funds.sh
+./scripts/transactions/commit-funds.sh
 ```
 
 This script:
@@ -216,7 +189,7 @@ When both participants have committed their funds, the head automatically opens.
 Now you can perform fast layer 2 transactions within the Hydra head. To send funds from Alice to Bob:
 
 ```bash
-./send-tx.sh
+./scripts/transactions/send-tx.sh
 ```
 
 This script:
@@ -265,7 +238,7 @@ This finalizes the head closure:
 Verify the final balances on layer 1:
 
 ```bash
-./query-node-funds.sh
+./scripts/utils/query-node-funds.sh
 ```
 
 ## Cleaning Up
@@ -273,7 +246,7 @@ Verify the final balances on layer 1:
 Now that the testing sequence is complete, return any unused test ada to the funding wallet to be used again later:
 
 ```bash
-./refund-funding-wallet.sh
+./scripts/utils/refund-funding-wallet.sh
 ```
 
 This script:
