@@ -11,9 +11,13 @@ export DYLD_FALLBACK_LIBRARY_PATH=$(pwd)/infra/node/bin
 # Navigate to preprod directory
 cd infra/node/preprod
 
-# Download blockchain snapshot using Mithril
-echo "Downloading blockchain snapshot..."
-mithril-client cardano-db download latest
+# Check if the database directory exists
+if [ ! -d "db" ]; then
+    echo "First-time setup: Downloading blockchain snapshot..."
+    mithril-client cardano-db download latest
+else
+    echo "Database already exists, skipping download..."
+fi
 
 # Start the Cardano node
 echo "Starting Cardano node..."

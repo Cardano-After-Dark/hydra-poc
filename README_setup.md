@@ -71,7 +71,7 @@ The installation script:
 Once installation is complete, set up and start the Cardano node:
 
 ```bash
-./setup-node.sh
+./setup-cardano-node.sh
 ```
 
 This script:
