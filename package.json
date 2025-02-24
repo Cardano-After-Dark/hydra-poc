@@ -1,0 +1,19 @@
+{
+  "devDependencies": {
+    "@types/node": "^22.13.5",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@emurgo/cardano-serialization-lib-nodejs": "^14.1.1",
+    "@helios-lang/codec-utils": "^0.3.4",
+    "@helios-lang/ledger": "^0.7.1",
+    "@helios-lang/tx-utils": "^0.6.0",
+    "@hyperionbt/helios": "^0.16.7"
+  },
+  "type": "module"
+}
