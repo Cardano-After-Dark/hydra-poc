@@ -1,6 +1,9 @@
 {
   "devDependencies": {
+    "@types/blessed": "^0.1.25",
     "@types/node": "^22.13.5",
+    "@types/prompt-sync": "^4.2.3",
+    "@types/react": "^18.2.55",
     "tsx": "^4.19.3",
     "typescript": "^5.7.3"
   },
@@ -8,15 +11,23 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "start": "tsx src/index.ts",
-    "simple-wallet": "tsx src/simpleWallet.ts",
-    "test": "tsx src/test.ts"
+    "tui": "tsx src/tui.ts",
+    "test": "tsx src/test.ts",
+    "decode": "tsx src/utils/decode.ts"
   },
   "dependencies": {
     "@emurgo/cardano-serialization-lib-nodejs": "^14.1.1",
     "@helios-lang/codec-utils": "^0.3.4",
     "@helios-lang/ledger": "^0.7.1",
     "@helios-lang/tx-utils": "^0.6.0",
-    "@hyperionbt/helios": "^0.16.7"
+    "@hyperionbt/helios": "^0.16.7",
+    "blessed": "^0.1.81",
+    "dotenv": "^16.4.5",
+    "ink": "^4.4.1",
+    "keypress": "^0.2.1",
+    "node-pty": "^1.0.0",
+    "prompt-sync": "^4.2.0",
+    "react": "^18.2.0"
   },
   "type": "module"
 }
