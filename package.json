@@ -8,7 +8,8 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "start": "tsx src/index.ts",
-    "simple-wallet": "tsx src/simpleWallet.ts"
+    "simple-wallet": "tsx src/simpleWallet.ts",
+    "test": "tsx src/test.ts"
   },
   "dependencies": {
     "@emurgo/cardano-serialization-lib-nodejs": "^14.1.1",

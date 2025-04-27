@@ -13,7 +13,7 @@ interface UtxoValue {
   };
 }
 
-interface Utxos {
+export interface Utxos {
   [key: string]: UtxoValue;
 }
 
@@ -39,7 +39,6 @@ export async function getUtxos(address: Address, hydraHeadUrl: string = "http://
     const filteredUtxos = Object.entries(utxos)
       .filter(([_, value]) => {
         const matches = value.address === targetAddress;
-        console.log(`Comparing ${value.address} with ${targetAddress}: ${matches}`);
         return matches;
       })
       .reduce((acc: Utxos, [key, value]) => {
@@ -54,11 +53,11 @@ export async function getUtxos(address: Address, hydraHeadUrl: string = "http://
   }
 }
 
-async function main() {
-  // Using an address that we know has UTXOs in the Hydra head
-  const address = Address.fromBech32("addr_test1vql8mpv20pdcr0pzqwyl23xsdejz5p9umc9rtk0xcha97vsuynzsz");
-  const utxos = await getUtxos(address);
-  console.log("Final result:", utxos);
-}
+// async function main() {
+//   // Using an address that we know has UTXOs in the Hydra head
+//   const address = Address.fromBech32("addr_test1vql8mpv20pdcr0pzqwyl23xsdejz5p9umc9rtk0xcha97vsuynzsz");
+//   const utxos = await getUtxos(address);
+//   console.log("Final result:", utxos);
+// }
 
-main();
+// main();
