@@ -13,6 +13,7 @@ export class CardanoCli {
   private config: CardanoCliConfig;
   private env: NodeJS.ProcessEnv;
   private cardanoCliPath: string;
+  private tempDir: string;
 
   constructor(config: CardanoCliConfig) {
     this.config = config;
@@ -26,6 +27,10 @@ export class CardanoCli {
     };
 
     this.cardanoCliPath = getCardanoCliPath();
+    this.tempDir = path.join(getConfig().txsDir, 'temp');
+    if (!fs.existsSync(this.tempDir)) {
+      fs.mkdirSync(this.tempDir, { recursive: true });
+    }
     logger.info("Using cardano-cli at:", this.cardanoCliPath);
   }
 
@@ -41,15 +46,36 @@ export class CardanoCli {
     }
   }
 
+  private getTempFilePath(prefix: string): string {
+    return path.join(this.tempDir, `${prefix}-${Date.now()}.json`);
+  }
+
+  private cleanupTempFile(filePath: string): void {
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    } catch (error) {
+      logger.warn("Failed to cleanup temp file:", filePath, error);
+    }
+  }
+
   async buildTransaction(
     txIn: string,
     txOut: string,
     changeAddress: string,
     changeAmount: number,
-    metadataFile: string,
-    outputFile: string
+    metadata: Record<string, any>
   ): Promise<RawTransaction> {
     logger.info("Building transaction...");
+    
+    // Create temporary metadata file
+    const metadataFile = this.getTempFilePath('metadata');
+    fs.writeFileSync(metadataFile, JSON.stringify(metadata));
+    
+    // Create temporary output file
+    const outputFile = this.getTempFilePath('tx-raw');
+    
     let command = `${this.cardanoCliPath} ${this.config.era} transaction build-raw \
       --tx-in ${txIn} \
       --tx-out ${txOut}`;
@@ -64,30 +90,49 @@ export class CardanoCli {
       --fee 0 \
       --out-file ${outputFile}`;
 
-    await this.executeCommand(command);
-    logger.info("Transaction built and saved to:", outputFile);
-
-    // Read and return the raw transaction
-    const rawTx = JSON.parse(fs.readFileSync(outputFile, 'utf8')) as RawTransaction;
-    return rawTx;
+    try {
+      await this.executeCommand(command);
+      logger.info("Transaction built successfully");
+      
+      // Read the raw transaction
+      const rawTx = JSON.parse(fs.readFileSync(outputFile, 'utf8')) as RawTransaction;
+      return rawTx;
+    } finally {
+      // Cleanup temporary files
+      this.cleanupTempFile(metadataFile);
+      this.cleanupTempFile(outputFile);
+    }
   }
 
   async signTransaction(
-    txBodyFile: string,
-    signingKeyFile: string,
-    outputFile: string
+    txBody: RawTransaction,
+    signingKeyFile: string
   ): Promise<SignedTransaction> {
     logger.info("Signing transaction...");
-    const command = `${this.cardanoCliPath} ${this.config.era} transaction sign \
-      --tx-body-file ${txBodyFile} \
-      --signing-key-file ${signingKeyFile} \
-      --out-file ${outputFile}`;
+    
+    // Create temporary files
+    const txBodyFile = this.getTempFilePath('tx-body');
+    const outputFile = this.getTempFilePath('tx-signed');
+    
+    try {
+      // Write transaction body to temp file
+      fs.writeFileSync(txBodyFile, JSON.stringify(txBody));
+      
+      const command = `${this.cardanoCliPath} ${this.config.era} transaction sign \
+        --tx-body-file ${txBodyFile} \
+        --signing-key-file ${signingKeyFile} \
+        --out-file ${outputFile}`;
 
-    await this.executeCommand(command);
-    logger.info("Transaction signed and saved to:", outputFile);
-
-    // Read and return the signed transaction
-    const signedTx = JSON.parse(fs.readFileSync(outputFile, 'utf8')) as SignedTransaction;
-    return signedTx;
+      await this.executeCommand(command);
+      logger.info("Transaction signed successfully");
+      
+      // Read the signed transaction
+      const signedTx = JSON.parse(fs.readFileSync(outputFile, 'utf8')) as SignedTransaction;
+      return signedTx;
+    } finally {
+      // Cleanup temporary files
+      this.cleanupTempFile(txBodyFile);
+      this.cleanupTempFile(outputFile);
+    }
   }
 } 

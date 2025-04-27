@@ -88,12 +88,6 @@ export class HydraTransactionBuilder {
     logger.info("Building raw transaction...");
     const config = getConfig();
     
-    // Create metadata file
-    const metadataFile = path.join(config.txsDir, 'metadata.json');
-    if (this.transaction.metadata) {
-      fs.writeFileSync(metadataFile, JSON.stringify(this.transaction.metadata));
-    }
-
     // Get the first input and output
     const firstInput = this.transaction.inputs[0];
     const firstOutput = this.transaction.outputs[0];
@@ -102,14 +96,12 @@ export class HydraTransactionBuilder {
     const txOut = `${firstOutput.address}+${firstOutput.amount}`;
     
     // Build raw transaction
-    const txBodyFile = path.join(config.txsDir, 'tx-raw.json');
     const rawTx = await this.cardanoCli.buildTransaction(
       txIn,
       txOut,
       this.transaction.outputs[1]?.address || '',
       this.transaction.outputs[1]?.amount || 0,
-      metadataFile,
-      txBodyFile
+      this.transaction.metadata || {}
     );
 
     return rawTx;
@@ -124,13 +116,13 @@ export class HydraTransactionBuilder {
     logger.info("Signing transaction...");
     const config = getConfig();
     
-    const txBodyFile = path.join(config.txsDir, 'tx-raw.json');
-    const signedTxFile = path.join(config.txsDir, 'tx-signed.json');
+    // Build the transaction first
+    const rawTx = await this.build();
     
+    // Sign the transaction
     const signedTx = await this.cardanoCli.signTransaction(
-      txBodyFile,
-      signingKeyFile,
-      signedTxFile
+      rawTx,
+      signingKeyFile
     );
 
     return signedTx;
