@@ -111,7 +111,8 @@ async function sendMessage(text: string) {
     const metadata = {
       1337: { 
         msg: text,
-        msg_id: Date.now().toString()
+        timestamp: Date.now().toString(),
+        sender: senderAddress.toBech32().slice(-6)
       }
     };
 

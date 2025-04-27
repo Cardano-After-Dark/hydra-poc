@@ -13,7 +13,8 @@
     "start": "tsx src/index.ts",
     "tui": "tsx src/tui.ts",
     "test": "tsx src/test.ts",
-    "decode": "tsx src/utils/decode.ts"
+    "decode": "tsx src/utils/decode.ts",
+    "stream": "tsx src/watch_stream.ts"
   },
   "dependencies": {
     "@emurgo/cardano-serialization-lib-nodejs": "^14.1.1",
