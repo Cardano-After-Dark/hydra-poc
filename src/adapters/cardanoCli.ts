@@ -1,12 +1,10 @@
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import { spawn } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
 import { CardanoCliConfig, RawTransaction, SignedTransaction } from '../core/types/transaction';
 import { getConfig, getCardanoCliPath } from '../utils/config';
 import { Logger } from '../utils/logger';
 
-const execAsync = promisify(exec);
 const logger = Logger.getInstance();
 
 export class CardanoCli {
@@ -34,18 +32,6 @@ export class CardanoCli {
     logger.info("Using cardano-cli at:", this.cardanoCliPath);
   }
 
-  private async executeCommand(command: string): Promise<string> {
-    logger.debug("Executing command:", command);
-    try {
-      const { stdout, stderr } = await execAsync(command, { env: this.env });
-      if (stderr) logger.warn("Command stderr:", stderr);
-      return stdout.trim();
-    } catch (error) {
-      logger.error("Command execution failed:", error);
-      throw error;
-    }
-  }
-
   private getTempFilePath(prefix: string): string {
     return path.join(this.tempDir, `${prefix}-${Date.now()}.json`);
   }
@@ -58,6 +44,44 @@ export class CardanoCli {
     } catch (error) {
       logger.warn("Failed to cleanup temp file:", filePath, error);
     }
+  }
+
+  private async executeCommand(args: string[]): Promise<string> {
+    logger.debug("Executing command:", this.cardanoCliPath, args.join(' '));
+    
+    return new Promise((resolve, reject) => {
+      const process = spawn(this.cardanoCliPath, args, { 
+        env: this.env,
+        stdio: ['ignore', 'pipe', 'pipe']
+      });
+
+      let stdout = '';
+      let stderr = '';
+
+      process.stdout.on('data', (data) => {
+        stdout += data.toString();
+      });
+
+      process.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      process.on('error', (error) => {
+        logger.error("Process error:", error);
+        reject(error);
+      });
+
+      process.on('close', (code) => {
+        if (code !== 0) {
+          logger.error("Process exited with code:", code);
+          logger.error("Stderr:", stderr);
+          reject(new Error(`Process exited with code ${code}: ${stderr}`));
+        } else {
+          if (stderr) logger.warn("Command stderr:", stderr);
+          resolve(stdout.trim());
+        }
+      });
+    });
   }
 
   async buildTransaction(
@@ -76,22 +100,26 @@ export class CardanoCli {
     // Create temporary output file
     const outputFile = this.getTempFilePath('tx-raw');
     
-    let command = `${this.cardanoCliPath} ${this.config.era} transaction build-raw \
-      --tx-in ${txIn} \
-      --tx-out ${txOut}`;
+    const args = [
+      this.config.era,
+      'transaction',
+      'build-raw',
+      '--tx-in', txIn,
+      '--tx-out', txOut
+    ];
 
     if (changeAmount > 0) {
-      command += ` \
-      --tx-out ${changeAddress}+${changeAmount}`;
+      args.push('--tx-out', `${changeAddress}+${changeAmount}`);
     }
 
-    command += ` \
-      --metadata-json-file ${metadataFile} \
-      --fee 0 \
-      --out-file ${outputFile}`;
+    args.push(
+      '--metadata-json-file', metadataFile,
+      '--fee', '0',
+      '--out-file', outputFile
+    );
 
     try {
-      await this.executeCommand(command);
+      await this.executeCommand(args);
       logger.info("Transaction built successfully");
       
       // Read the raw transaction
@@ -118,12 +146,16 @@ export class CardanoCli {
       // Write transaction body to temp file
       fs.writeFileSync(txBodyFile, JSON.stringify(txBody));
       
-      const command = `${this.cardanoCliPath} ${this.config.era} transaction sign \
-        --tx-body-file ${txBodyFile} \
-        --signing-key-file ${signingKeyFile} \
-        --out-file ${outputFile}`;
+      const args = [
+        this.config.era,
+        'transaction',
+        'sign',
+        '--tx-body-file', txBodyFile,
+        '--signing-key-file', signingKeyFile,
+        '--out-file', outputFile
+      ];
 
-      await this.executeCommand(command);
+      await this.executeCommand(args);
       logger.info("Transaction signed successfully");
       
       // Read the signed transaction
