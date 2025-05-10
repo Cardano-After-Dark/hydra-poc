@@ -14,7 +14,8 @@ export class HydraTransactionBuilder {
   private cardanoCli: CardanoCli;
 
   constructor(websocketUrl: string = "ws://127.0.0.1:4001") {
-    logger.info("Initializing HydraTransactionBuilder with websocket URL:", {}, websocketUrl);
+    logger.info(`Initializing HydraTransactionBuilder with websocket URL: ${websocketUrl}`);
+    debugger
     this.transaction = {
       inputs: [],
       outputs: [],
@@ -244,11 +245,15 @@ export async function createTransactionFromUtxo(
   logger.info("Creating transaction from UTXO");
   const utxos = await getUtxos(senderAddress, hydraHeadUrl);
   const utxoKeys = Object.keys(utxos);
-  
-  debugger
-  if (utxoKeys.length === 0) {
+
+  if (utxoKeys.length > 0) {
+    logger.info(`${utxoKeys.length} UTXOs found for the sender address`);
+  }
+  else {
+    logger.error("No UTXOs found for the sender address");
     throw new Error("No UTXOs found for the sender address");
   }
+  debugger
 
   const firstUtxo = utxos[utxoKeys[0]];
   const totalAmount = firstUtxo.value.lovelace;

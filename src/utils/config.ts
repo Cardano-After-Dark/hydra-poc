@@ -21,9 +21,6 @@ export interface Config {
 }
 
 export function getConfig(): Config {
-  // Replace console.log with debug-level log
-  logger.debug(`Loading config with PROJECT_ROOT: ${process.env.PROJECT_ROOT}`);
-
   return {
     projectRoot: process.env.PROJECT_ROOT || '',
     nodeDir: process.env.NODE_DIR || '',
