@@ -8,6 +8,25 @@ import * as path from 'path';
 // Create an instance of the original logger for compatibility
 const appLogger = Logger.getInstance();
 
+// Add this before the test_send_message function
+const TEST_MESSAGES = [
+  "Hello from Hydra!",
+  "Testing message transmission...",
+  "Random message #1",
+  "Random message #2",
+  "Debug message test",
+  "Hydra network test",
+  "Transaction metadata test",
+  "Random test message",
+  "Another test message",
+  "Final test message"
+];
+
+function getRandomMessage(): string {
+  const randomIndex = Math.floor(Math.random() * TEST_MESSAGES.length);
+  return TEST_MESSAGES[randomIndex];
+}
+
 async function sendMessage(message: string, senderAddress: Address, recipientAddress: string, amount: number, config: any) {
     debugger
     try {
@@ -65,10 +84,13 @@ async function sendMessage(message: string, senderAddress: Address, recipientAdd
     }
   }
 
-  async function test_send_message(message: string) {
+  async function test_send_message(message?: string) {
     try {
+      // Use provided message or get a random one
+      const messageToSend = message || getRandomMessage();
+      
       logger.info("Starting Hydra message sender...", {
-        test: { message }
+        test: { message: messageToSend }
       });
       
       const config = getConfig();
@@ -80,13 +102,13 @@ async function sendMessage(message: string, senderAddress: Address, recipientAdd
       const recipientAddress = "addr_test1vql8mpv20pdcr0pzqwyl23xsdejz5p9umc9rtk0xcha97vsuynzsz";
       const amount = 1000000; // 1 ADA in lovelace
   
-      logger.info(`Sending message: "${message}"`, {
+      logger.info(`Sending message: "${messageToSend}"`, {
         transaction: { senderAddress, recipientAddress, amount }
       });
-      await sendMessage(message, senderAddress, recipientAddress, amount, config);
+      await sendMessage(messageToSend, senderAddress, recipientAddress, amount, config);
       
       logger.info("Test completed successfully", {
-        test: { message, status: 'success' }
+        test: { message: messageToSend, status: 'success' }
       });
       // logger.endSession();
       
@@ -129,14 +151,13 @@ process.on('exit', (code) => {
   }
 });
 
-// The message to send
-const message = "Debugger is working better now... "
-logger.debug(`Message "${message}" is being prepared for sending`, {
-  test: { message }
+// Replace the existing message and test call with:
+logger.debug("Preparing to send a test message", {
+  test: { mode: "random" }
 });
 
-// Run the test with the specified message
-test_send_message(message)
+// Run the test with a random message
+test_send_message()
   .then(success => {
     if (!success) {
       process.exitCode = 1;
