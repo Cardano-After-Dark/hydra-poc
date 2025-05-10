@@ -242,7 +242,7 @@ export async function createTransactionFromUtxo(
   hydraHeadUrl: string = "http://127.0.0.1:4001"
 ): Promise<HydraTransactionBuilder> {
   debugger
-  logger.info("Creating transaction from UTXO");
+  logger.info("Retrieving UTXOs for sender in hydra head");
   const utxos = await getUtxos(senderAddress, hydraHeadUrl);
   const utxoKeys = Object.keys(utxos);
 

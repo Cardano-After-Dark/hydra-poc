@@ -88,7 +88,7 @@ This script:
 Monitor the synchronization status in a separate terminal:
 
 ```bash
-./query-node-tip.sh
+./scripts/utils/query-tip.sh
 ```
 
 You'll see output similar to:
@@ -103,7 +103,7 @@ You'll see output similar to:
     "slotsToEpochEnd": 9945,
     "syncProgress": "100.00"
 }
-```
+``` 
 
 Wait until `syncProgress` reaches "100.00" before proceeding.
 
