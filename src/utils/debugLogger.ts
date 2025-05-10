@@ -71,6 +71,7 @@ export class DebugLogger {
   private logFileStream?: NodeJS.WritableStream;
   private sessionId: string;
   private sessionStartTime: Date;
+  private sessionStartCpu: NodeJS.CpuUsage;
 
   private constructor() {
     this.isDebugMode = this.detectDebugMode();
@@ -80,6 +81,7 @@ export class DebugLogger {
     this.config = { ...DEFAULT_CONFIG };
     this.sessionId = this.generateSessionId();
     this.sessionStartTime = new Date();
+    this.sessionStartCpu = process.cpuUsage();
     
     // Initialize file stream if saveToFile is enabled
     if (this.config.saveToFile && this.config.logFilePath) {
@@ -122,27 +124,31 @@ export class DebugLogger {
    * Log session end
    */
   public endSession(): void {
-    const sessionEndTime = new Date();
-    const duration = (sessionEndTime.getTime() - this.sessionStartTime.getTime()) / 1000;
-    const totalCpu = this.getCpuTimeDiff(this.startCpuUsage, process.cpuUsage());
+    if (!this.isDebugMode) return;
 
-    const sessionFooter = [
-      '\n',
-      `${COLORS.SECTION}════════════════════════════════════════════════════════════════${COLORS.RESET}`,
-      `${COLORS.SECTION}🔴 Debug Session Ended${COLORS.RESET}`,
-      `${COLORS.SECTION}Session ID: ${this.sessionId}${COLORS.RESET}`,
-      `${COLORS.SECTION}End Time: ${sessionEndTime.toISOString()}${COLORS.RESET}`,
-      `${COLORS.SECTION}Duration: ${duration.toFixed(2)}s${COLORS.RESET}`,
-      `${COLORS.SECTION}Total CPU Time: ${totalCpu}s${COLORS.RESET}`,
-      `${COLORS.SECTION}════════════════════════════════════════════════════════════════${COLORS.RESET}`,
-      '\n'
+    const endTime = new Date();
+    const duration = (endTime.getTime() - this.sessionStartTime.getTime()) / 1000;
+    const cpuUsage = process.cpuUsage(this.sessionStartCpu);
+    const totalCpuTime = (cpuUsage.user + cpuUsage.system) / 1000000; // Convert to seconds
+
+    const sessionEndMessage = [
+      '='.repeat(64),
+      '🔴 Debug Session Ended',
+      `Session ID: ${this.sessionId}`,
+      `End Time: ${endTime.toISOString()}`,
+      `Duration: ${duration.toFixed(2)}s`,
+      `Total CPU Time: ${totalCpuTime.toFixed(3)}s`,
+      '='.repeat(64),
+      '',
+      'Use your debugger stop command to exit'
     ].join('\n');
 
-    console.log(sessionFooter);
-    if (this.config.saveToFile && this.logFileStream) {
-      this.logFileStream.write(sessionFooter.replace(/\x1b\[[0-9;]*m/g, ''));
-      this.logFileStream.end();
-    }
+    console.log(sessionEndMessage);
+
+    // Add a small delay to allow the message to be read
+    setTimeout(() => {
+      process.exit(0);
+    }, 1000);
   }
 
   /**
