@@ -7,22 +7,20 @@ import logger from "../../utils/debugLogger";
 import { CardanoCli } from "../../adapters/cardanoCli";
 import * as path from 'path';
 import * as fs from 'fs';
-import { WebSocketAdapter } from '../../adapters/websocketAdapter';
 
 export class HydraTransactionBuilder {
   private transaction: Transaction;
   private websocketUrl: string;
   private cardanoCli: CardanoCli;
-  private wsAdapter: WebSocketAdapter;
 
   constructor(websocketUrl: string = "ws://127.0.0.1:4001") {
     logger.info(`Initializing HydraTransactionBuilder with websocket URL: ${websocketUrl}`);
+    debugger
     this.transaction = {
       inputs: [],
       outputs: [],
     };
     this.websocketUrl = websocketUrl;
-    this.wsAdapter = new WebSocketAdapter(websocketUrl);
     
     // Initialize Cardano CLI
     const config = getConfig();
@@ -135,27 +133,97 @@ export class HydraTransactionBuilder {
    * @returns Promise that resolves when the transaction is submitted
    */
   async submit(signedTx: SignedTransaction): Promise<void> {
-    logger.info("Preparing to submit transaction", {
-      transaction: { 
-        type: signedTx.type, 
-        description: signedTx.description 
-      },
+    logger.info("Preparing to submit transaction...", {
+      transaction: { type: signedTx.type, description: signedTx.description }
+    });
+
+    const message = {
+      tag: "NewTx",
+      transaction: signedTx,
+    };
+    logger.debug("Message to submit:", {
+      message: { tag: message.tag, transactionType: message.transaction.type }
+    });
+
+    logger.info("Connecting to WebSocket at:", {
       connection: { url: this.websocketUrl }
     });
 
-    try {
-      await this.wsAdapter.connect();
-      await this.wsAdapter.sendTransaction(signedTx);
-      await this.wsAdapter.close();
-    } catch (error: any) {
-      logger.error("Error submitting transaction:", {
-        error: { 
-          message: error.message,
-          stack: error.stack
-        }
-      });
-      throw error;
-    }
+    return new Promise((resolve, reject) => {
+      try {
+        const ws = new WebSocket(this.websocketUrl);
+        
+        // Connection timeout
+        const connectionTimeout = setTimeout(() => {
+          logger.error("WebSocket connection timeout", {
+            connection: { url: this.websocketUrl, timeout: 5000 }
+          });
+          ws.close();
+          reject(new Error("WebSocket connection timeout"));
+        }, 5000);
+
+        ws.onopen = () => {
+          clearTimeout(connectionTimeout);
+          logger.info("WebSocket connection established", {
+            connection: { url: this.websocketUrl, protocol: ws.protocol }
+          });
+
+          try {
+            logger.info("Sending transaction...", {
+              transaction: { type: signedTx.type }
+            });
+            ws.send(JSON.stringify(message));
+            
+            // Add a small delay before closing to ensure message is sent
+            setTimeout(() => {
+              logger.info("Closing WebSocket connection", {
+                connection: { url: this.websocketUrl }
+              });
+              ws.close();
+              logger.info("WebSocket connection closed", {
+                connection: { url: this.websocketUrl }
+              });
+              resolve();
+            }, 100);
+          } catch (sendError: any) {
+            logger.error("Error sending transaction:", {
+              error: { message: sendError.message, stack: sendError.stack }
+            }, sendError);
+            ws.close();
+            reject(sendError);
+          }
+        };
+
+        ws.onerror = (error) => {
+          clearTimeout(connectionTimeout);
+          logger.error("WebSocket error:", {
+            error: { 
+              message: error.message,
+              type: error.type,
+              target: error.target ? 'WebSocket' : 'Unknown'
+            }
+          }, error);
+          reject(error);
+        };
+
+        ws.onclose = (event) => {
+          clearTimeout(connectionTimeout);
+          logger.debug("WebSocket closed", {
+            connection: {
+              code: event.code,
+              reason: event.reason,
+              wasClean: event.wasClean
+            }
+          });
+        };
+
+      } catch (connectionError: any) {
+        logger.error("Failed to create WebSocket connection:", {
+          error: { message: connectionError.message, stack: connectionError.stack }
+        }, connectionError);
+        reject(connectionError);
+      }
+    });
   }
 }
 
