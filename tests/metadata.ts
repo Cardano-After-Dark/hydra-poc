@@ -59,6 +59,7 @@ async function sendMessage(message: string, senderAddress: Address, recipientAdd
       logger.error("Error sending message:", {
         error: { message: error.message, stack: error.stack }
       }, error);
+      throw error;
     }
   }
 
@@ -81,25 +82,65 @@ async function sendMessage(message: string, senderAddress: Address, recipientAdd
         transaction: { senderAddress, recipientAddress, amount }
       });
       await sendMessage(message, senderAddress, recipientAddress, amount, config);
-      debugger
-      logger.info("Test completed", {
+      
+      logger.info("Test completed successfully", {
         test: { message, status: 'success' }
       });
-      logger.endSession();
+      // logger.endSession();
+      
+      // Add a small delay to ensure all logs are written
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Log success but don't exit
+      console.log('\n✅ Test completed successfully!');
+      debugger
+      return true;
     } catch (error) {
       logger.error("Error in test:", {
         error: { message: error.message, stack: error.stack }
       }, error);
       logger.endSession();
+      
+      // Log error but don't exit
+      console.error('\n❌ Test failed:', error.message);
+      return false;
     }
   }
+
+// Handle process termination signals
+process.on('SIGTERM', () => {
+  console.log('\nReceived SIGTERM signal. Cleaning up...');
+  logger.endSession();
+});
+
+process.on('SIGINT', () => {
+  console.log('\nReceived SIGINT signal. Cleaning up...');
+  logger.endSession();
+});
+
+// Handle process exit
+process.on('exit', (code) => {
+  if (code === 0) {
+    console.log('\n✨ Process completed successfully');
+  } else {
+    console.log(`\n⚠️ Process exited with code ${code}`);
+  }
+});
 
 // The message to send
 const message = "Debugger is working better now... "
 logger.debug(`Message "${message}" is being prepared for sending`, {
   test: { message }
 });
-debugger
+
 // Run the test with the specified message
-test_send_message(message);
-debugger
+test_send_message(message)
+  .then(success => {
+    if (!success) {
+      process.exitCode = 1;
+    }
+  })
+  .catch(error => {
+    console.error('\n❌ Unhandled error:', error.message);
+    process.exitCode = 1;
+  });
