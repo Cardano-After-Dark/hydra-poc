@@ -4,6 +4,7 @@ import { getConfig } from "./utils/config";
 import logger, { LogLevel } from "./utils/debugLogger";
 import * as path from 'path';
 import * as readline from 'readline';
+import * as fs from 'fs';
 
 // Disable all logging
 logger.configure({
@@ -112,16 +113,18 @@ async function sendMessage(text: string) {
 
   try {
     const config = getConfig();
-    const senderAddress = Address.fromBech32("addr_test1vql8mpv20pdcr0pzqwyl23xsdejz5p9umc9rtk0xcha97vsuynzsz");
-    const recipientAddress = "addr_test1vql8mpv20pdcr0pzqwyl23xsdejz5p9umc9rtk0xcha97vsuynzsz";
+    const alice_address = path.join(config.credentialsDir, 'alice/alice-funds.addr');
+    const senderAddress = Address.fromBech32(fs.readFileSync(alice_address, 'utf8').trim());
+    const recipientAddress = senderAddress.toBech32(); // Use same address for testing
     const amount = 1000000; // 1 ADA in lovelace
 
     // Create metadata with message
     const metadata = {
       1337: { 
         msg: text,
-        timestamp: Date.now().toString(),
-        sender: senderAddress.toBech32().slice(-6)
+        msg_id: Date.now().toString(),
+        sender: senderAddress.toBech32(),
+        timestamp: new Date().toISOString()
       }
     };
 
