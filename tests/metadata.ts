@@ -15,7 +15,9 @@ async function sendMessage(message: string, senderAddress: Address, recipientAdd
       const metadata = {
         1337: { 
           msg: message,
-          msg_id: Date.now().toString()
+          msg_id: Date.now().toString(),
+          sender: senderAddress.toBech32(),
+          timestamp: new Date().toISOString()
         }
       };
       
