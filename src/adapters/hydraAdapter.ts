@@ -1,9 +1,8 @@
 import { Address } from "@hyperionbt/helios";
 import { Utxos } from '../core/types/utxo';
 import { getConfig } from '../utils/config';
-import { Logger } from '../utils/logger';
+import logger from "../utils/debugLogger";
 
-const logger = Logger.getInstance();
 
 /**
  * Get UTXOs for a given address from the Hydra head
@@ -13,7 +12,9 @@ const logger = Logger.getInstance();
  */
 export async function getUtxos(address: Address, hydraHeadUrl: string = "http://127.0.0.1:4001"): Promise<Utxos> {
   try {
+    debugger
     logger.debug(`Fetching UTXOs from ${hydraHeadUrl} for address: ${address.toBech32()}`);
+    debugger
     const response = await fetch(`${hydraHeadUrl}/snapshot/utxo`);
     if (!response.ok) {
       throw new Error(`Failed to fetch UTXOs: ${response.statusText}`);
@@ -42,7 +43,7 @@ export async function getUtxos(address: Address, hydraHeadUrl: string = "http://
     logger.info(`Found ${Object.keys(filteredUtxos).length} UTXOs for address ${targetAddress}`);
     return filteredUtxos;
   } catch (error) {
-    logger.error("Error getting UTXOs:", error);
+    logger.error("Error getting UTXOs:", { error: error as Error });
     throw error;
   }
 } 
