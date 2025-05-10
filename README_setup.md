@@ -64,7 +64,7 @@ The installation script:
 3. Verifies all dependencies are correctly installed
 4. Sets appropriate file permissions
 
-
+TODO: Setup .env file and varables. 
 
 ## Setting Up Cardano Node
 
