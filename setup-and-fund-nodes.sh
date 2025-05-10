@@ -67,9 +67,21 @@ done
 
 echo "Sufficient funds detected in funding wallet!"
 
+# Step 3: Setup node credentials first
+echo "Setting up node credentials..."
+./scripts/setup/node/setup-node-credentials.sh
+if [ $? -ne 0 ]; then
+    echo "Error setting up node credentials"
+    exit 1
+fi
+
 # Function to check if a wallet has any ADA
 check_wallet_balance() {
     local addr_file=$1
+    if [ ! -f "$addr_file" ]; then
+        echo "Error: Address file $addr_file does not exist"
+        return 1
+    fi
     local balance=$(cardano-cli query utxo --address $(cat $addr_file) --out-file /dev/stdout | jq '[.[]] | length')
     if [ "$balance" -gt 0 ]; then
         return 0  # has funds
@@ -81,17 +93,11 @@ check_wallet_balance() {
 # Check all wallets
 needs_funding=false
 for wallet in "alice-node" "alice-funds" "bob-node" "bob-funds"; do
-    if ! check_wallet_balance "infra/credentials/${wallet%%-*}/${wallet}.addr"; then
+    if ! check_wallet_balance "${CREDENTIALS_DIR}/${wallet%%-*}/${wallet}.addr"; then
         echo "Warning: $wallet wallet has no funds"
         needs_funding=true
     fi
 done
-
-# Run setup-node-credentials if any wallet needs funding
-if [ "$needs_funding" = true ]; then
-    echo "Some wallets need funding. Running setup-node-credentials..."
-    ./scripts/setup/node/setup-node-credentials.sh
-fi
 
 # Display current balances
 echo "# UTxO of alice-node"
@@ -105,8 +111,6 @@ cardano-cli query utxo --address $(cat ${CREDENTIALS_DIR}/bob/bob-node.addr) --o
 
 echo "# UTxO of bob-funds"
 cardano-cli query utxo --address $(cat ${CREDENTIALS_DIR}/bob/bob-funds.addr) --out-file /dev/stdout | jq
-
-echo "Setup complete! Node wallets have been created and funded." 
 
 # Check if libiconv is already installed
 if ! brew list libiconv &>/dev/null; then
