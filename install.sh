@@ -59,7 +59,4 @@ curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/input-out
 # Make binaries executable
 chmod +x bin/*
 
-# Set environment variables
-./scripts/utils/set-env-vars.sh
-
 echo "Installation complete. Check that all components were downloaded successfully in the 'node' directory."

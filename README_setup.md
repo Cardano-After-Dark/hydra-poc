@@ -64,7 +64,13 @@ The installation script:
 3. Verifies all dependencies are correctly installed
 4. Sets appropriate file permissions
 
-TODO: Setup .env file and varables. 
+## Setting Up Environment Variables
+
+The `set-env-vars.sh` script configures your environment by creating a `.env` file from `.env.example`, replacing placeholder paths with your actual project location, and setting up required directories for credentials, persistence, and transactions.
+
+```bash
+./scripts/utils/set-env-vars.sh
+```
 
 ## Setting Up Cardano Node
 
