@@ -3,19 +3,30 @@
 This comprehensive guide walks you through installing and operating Cardano Node with the Hydra Head protocol on macOS. Hydra is Cardano's layer 2 scaling solution that enables fast, low-cost transactions with instant finality.
 
 ## Table of Contents
-- [Overview](#overview)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Setting Up Cardano Node](#setting-up-cardano-node)
-- [Preparing Credentials](#preparing-credentials)
-- [Setting Up Hydra Nodes](#setting-up-hydra-nodes)
-- [Opening a Hydra Head](#opening-a-hydra-head)
-- [Layer 2 Transactions](#layer-2-transactions)
-- [Closing the Hydra Head](#closing-the-hydra-head)
-- [Cleaning Up](#cleaning-up)
-- [Troubleshooting](#troubleshooting)
-- [Advanced Configuration](#advanced-configuration)
-- [Technical Reference](#technical-reference)
+- [Cardano Node and Hydra Installation Guide](#cardano-node-and-hydra-installation-guide)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Prerequisites](#prerequisites)
+    - [System Requirements](#system-requirements)
+    - [Knowledge Requirements](#knowledge-requirements)
+    - [Testing Funds](#testing-funds)
+    - [Required Tools](#required-tools)
+  - [Installation](#installation)
+  - [Setting Up Environment Variables](#setting-up-environment-variables)
+  - [Setting Up Cardano Node](#setting-up-cardano-node)
+  - [Preparing Credentials](#preparing-credentials)
+  - [Setting Up Hydra Nodes](#setting-up-hydra-nodes)
+  - [Opening a Hydra Head](#opening-a-hydra-head)
+  - [Layer 2 Transactions](#layer-2-transactions)
+  - [Closing the Hydra Head](#closing-the-hydra-head)
+  - [Cleaning Up](#cleaning-up)
+  - [Advanced Configuration](#advanced-configuration)
+    - [Custom Protocol Parameters](#custom-protocol-parameters)
+    - [Network Topology](#network-topology)
+  - [Technical Reference](#technical-reference)
+    - [Component Versions](#component-versions)
+    - [Directory Structure](#directory-structure)
+    - [Useful Commands](#useful-commands)
 
 ## Overview
 
@@ -115,7 +126,7 @@ Generate cryptographic credentials for preprod funding wallet:
 ./setup-and-fund-nodes.sh
 ```
 
-This will create a Cardano key pair for the funding wallet and generate an address. Preprod tADA can be obtained from the [Cardano Testnet Faucet](https://docs.cardano.org/cardano-testnets/tools/faucet/) with this address as the recipient.
+This will create a Cardano key pair for the funding wallet and generate an address. **Preprod tADA** can be obtained from the [Cardano Testnet Faucet](https://docs.cardano.org/cardano-testnets/tools/faucet/) with this address as the recipient.
 
 
 The script will query the blockchain every 10 seconds until the funding wallet has enough funds or until a timeout of 5 minutes is reached. Once the funding wallet has enough funds, the script will create key pairs for the participants, generate addresses for all key pairs, and build a transaction to send 1000000000 lovelace from the funding wallet to the participants' node and funds addresses. It will also create a Hydra key pair for each participant.
