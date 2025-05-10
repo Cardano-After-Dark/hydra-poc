@@ -129,9 +129,13 @@ Generate cryptographic credentials for preprod funding wallet:
 This will create a Cardano key pair for the funding wallet and generate an address. **Preprod tADA** can be obtained from the [Cardano Testnet Faucet](https://docs.cardano.org/cardano-testnets/tools/faucet/) with this address as the recipient.
 
 
+
 The script will query the blockchain every 10 seconds until the funding wallet has enough funds or until a timeout of 5 minutes is reached. Once the funding wallet has enough funds, the script will create key pairs for the participants, generate addresses for all key pairs, and build a transaction to send 1000000000 lovelace from the funding wallet to the participants' node and funds addresses. It will also create a Hydra key pair for each participant.
 
+Note: If this fails, try it again. TODO: Fix this 
+
 You can verify the funds have been received by the participants:
+
 
 ```bash
 ./scripts/utils/query-node-funds.sh
