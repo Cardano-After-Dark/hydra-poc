@@ -14,7 +14,7 @@ export class HydraTransactionBuilder {
   private cardanoCli: CardanoCli;
 
   constructor(websocketUrl: string = "ws://127.0.0.1:4001") {
-    logger.info("Initializing HydraTransactionBuilder with websocket URL:", websocketUrl);
+    logger.info("Initializing HydraTransactionBuilder with websocket URL:", {}, websocketUrl);
     this.transaction = {
       inputs: [],
       outputs: [],
@@ -35,7 +35,7 @@ export class HydraTransactionBuilder {
    * @param utxoKey The UTXO key in format "txHash#index"
    */
   addInput(utxoKey: string): this {
-    logger.debug("Adding input with UTXO key:", utxoKey);
+    logger.debug("Adding input with UTXO key:", {}, utxoKey);
     const [txHash, txIndex] = utxoKey.split("#");
     this.transaction.inputs.push({
       txHash,
@@ -50,7 +50,7 @@ export class HydraTransactionBuilder {
    * @param amount The amount in lovelace
    */
   addOutput(address: string, amount: number): this {
-    logger.debug("Adding output - Address:", address, "Amount:", amount);
+    logger.debug("Adding output - Address:", {}, address, "Amount:", amount);
     this.transaction.outputs.push({
       address,
       amount,
@@ -73,7 +73,7 @@ export class HydraTransactionBuilder {
    * @param fee The fee in lovelace
    */
   setFee(fee: number): this {
-    logger.debug("Setting fee:", fee);
+    logger.debug("Setting fee:", {}, fee);
     this.transaction.fee = fee;
     return this;
   }
@@ -137,9 +137,9 @@ export class HydraTransactionBuilder {
       tag: "NewTx",
       transaction: signedTx,
     };
-    logger.debug("Message to submit:", message);
+    logger.debug("Message to submit:", {}, message);
 
-    logger.info("Connecting to WebSocket at:", this.websocketUrl);
+    logger.info("Connecting to WebSocket at:", {}, this.websocketUrl);
     const ws = new WebSocket(this.websocketUrl);
     
     return new Promise((resolve, reject) => {
@@ -153,12 +153,12 @@ export class HydraTransactionBuilder {
       };
 
       ws.onerror = (error) => {
-        logger.error("WebSocket error:", error);
+        logger.error("WebSocket error:", {}, error);
         reject(error);
       };
 
       ws.onclose = (event) => {
-        logger.debug("WebSocket closed with code:", event.code, "reason:", event.reason);
+        logger.debug("WebSocket closed with code:", {}, event.code, "reason:", event.reason);
       };
     });
   }
@@ -178,10 +178,12 @@ export async function createTransactionFromUtxo(
   amount: number,
   hydraHeadUrl: string = "http://127.0.0.1:4001"
 ): Promise<HydraTransactionBuilder> {
+  debugger
   logger.info("Creating transaction from UTXO");
   const utxos = await getUtxos(senderAddress, hydraHeadUrl);
   const utxoKeys = Object.keys(utxos);
   
+  debugger
   if (utxoKeys.length === 0) {
     throw new Error("No UTXOs found for the sender address");
   }
@@ -189,7 +191,8 @@ export async function createTransactionFromUtxo(
   const firstUtxo = utxos[utxoKeys[0]];
   const totalAmount = firstUtxo.value.lovelace;
   const changeAmount = totalAmount - amount;
-
+  
+  debugger
   const builder = new HydraTransactionBuilder();
   builder
     .addInput(utxoKeys[0])

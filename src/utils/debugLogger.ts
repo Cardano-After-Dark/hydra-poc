@@ -23,7 +23,42 @@ const COLORS = {
   CRITICAL: '\x1b[35m', // Magenta
   TIMESTAMP: '\x1b[90m', // Gray
   CALLER: '\x1b[90m',   // Gray
-  SEPARATOR: '\x1b[90m' // Gray
+  SEPARATOR: '\x1b[90m', // Gray
+  SECTION: '\x1b[1m\x1b[36m', // Bold Cyan
+  ATTRIBUTE: '\x1b[33m' // Yellow
+};
+
+// Logger configuration interface
+export interface LoggerConfig {
+  showTimestamp: boolean;
+  showCallStack: boolean;
+  showCpuTime: boolean;
+  showSection: boolean;
+  showAttributes: boolean;
+  saveToFile: boolean;
+  logFilePath?: string;
+  maxCallStackDepth: number;
+  attributes: {
+    [key: string]: boolean;
+  };
+}
+
+// Default configuration
+const DEFAULT_CONFIG: LoggerConfig = {
+  showTimestamp: true,
+  showCallStack: true,
+  showCpuTime: true,
+  showSection: true,
+  showAttributes: true,
+  saveToFile: false,
+  maxCallStackDepth: 5,
+  attributes: {
+    trace: true,
+    performance: true,
+    metadata: true,
+    network: true,
+    state: true
+  }
 };
 
 export class DebugLogger {
@@ -32,19 +67,109 @@ export class DebugLogger {
   private isDebugMode: boolean;
   private startCpuUsage: NodeJS.CpuUsage;
   private lastCpuUsage: NodeJS.CpuUsage;
+  private config: LoggerConfig;
+  private logFileStream?: NodeJS.WritableStream;
+  private sessionId: string;
+  private sessionStartTime: Date;
 
   private constructor() {
     this.isDebugMode = this.detectDebugMode();
     this.currentLevel = this.isDebugMode ? LogLevel.DEBUG : LogLevel.INFO;
     this.startCpuUsage = process.cpuUsage();
     this.lastCpuUsage = this.startCpuUsage;
+    this.config = { ...DEFAULT_CONFIG };
+    this.sessionId = this.generateSessionId();
+    this.sessionStartTime = new Date();
     
-    // Log the debug mode status at initialization
-    if (this.isDebugMode) {
-      console.log(`${COLORS.DEBUG}⚡ Debug mode ENABLED - showing all log levels${COLORS.RESET}`);
-    } else {
-      console.log(`${COLORS.INFO}ℹ️ Debug mode DISABLED - showing INFO and above only${COLORS.RESET}`);
+    // Initialize file stream if saveToFile is enabled
+    if (this.config.saveToFile && this.config.logFilePath) {
+      this.initializeLogFile();
     }
+    
+    // Log session start
+    this.logSessionStart();
+  }
+
+  /**
+   * Generate a unique session ID
+   */
+  private generateSessionId(): string {
+    return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * Log session start
+   */
+  private logSessionStart(): void {
+    const sessionHeader = [
+      '\n',
+      `${COLORS.SECTION}════════════════════════════════════════════════════════════════${COLORS.RESET}`,
+      `${COLORS.SECTION}🔵 Debug Session Started${COLORS.RESET}`,
+      `${COLORS.SECTION}Session ID: ${this.sessionId}${COLORS.RESET}`,
+      `${COLORS.SECTION}Start Time: ${this.sessionStartTime.toISOString()}${COLORS.RESET}`,
+      `${COLORS.SECTION}Debug Mode: ${this.isDebugMode ? 'ENABLED' : 'DISABLED'}${COLORS.RESET}`,
+      `${COLORS.SECTION}════════════════════════════════════════════════════════════════${COLORS.RESET}`,
+      '\n'
+    ].join('\n');
+
+    console.log(sessionHeader);
+    if (this.config.saveToFile && this.logFileStream) {
+      this.logFileStream.write(sessionHeader.replace(/\x1b\[[0-9;]*m/g, ''));
+    }
+  }
+
+  /**
+   * Log session end
+   */
+  public endSession(): void {
+    const sessionEndTime = new Date();
+    const duration = (sessionEndTime.getTime() - this.sessionStartTime.getTime()) / 1000;
+    const totalCpu = this.getCpuTimeDiff(this.startCpuUsage, process.cpuUsage());
+
+    const sessionFooter = [
+      '\n',
+      `${COLORS.SECTION}════════════════════════════════════════════════════════════════${COLORS.RESET}`,
+      `${COLORS.SECTION}🔴 Debug Session Ended${COLORS.RESET}`,
+      `${COLORS.SECTION}Session ID: ${this.sessionId}${COLORS.RESET}`,
+      `${COLORS.SECTION}End Time: ${sessionEndTime.toISOString()}${COLORS.RESET}`,
+      `${COLORS.SECTION}Duration: ${duration.toFixed(2)}s${COLORS.RESET}`,
+      `${COLORS.SECTION}Total CPU Time: ${totalCpu}s${COLORS.RESET}`,
+      `${COLORS.SECTION}════════════════════════════════════════════════════════════════${COLORS.RESET}`,
+      '\n'
+    ].join('\n');
+
+    console.log(sessionFooter);
+    if (this.config.saveToFile && this.logFileStream) {
+      this.logFileStream.write(sessionFooter.replace(/\x1b\[[0-9;]*m/g, ''));
+      this.logFileStream.end();
+    }
+  }
+
+  /**
+   * Initialize log file stream
+   */
+  private initializeLogFile(): void {
+    if (this.config.logFilePath) {
+      const fs = require('fs');
+      this.logFileStream = fs.createWriteStream(this.config.logFilePath, { flags: 'a' });
+    }
+  }
+
+  /**
+   * Configure the logger
+   */
+  public configure(config: Partial<LoggerConfig>): void {
+    this.config = { ...this.config, ...config };
+    if (this.config.saveToFile && this.config.logFilePath && !this.logFileStream) {
+      this.initializeLogFile();
+    }
+  }
+
+  /**
+   * Enable/disable specific attributes
+   */
+  public setAttribute(name: string, enabled: boolean): void {
+    this.config.attributes[name] = enabled;
   }
 
   /**
@@ -120,9 +245,69 @@ export class DebugLogger {
   }
 
   /**
-   * Format and output a log message
+   * Get the current call stack with file and line information
    */
-  private log(level: LogLevel, levelName: string, message: string, ...args: any[]): void {
+  private getCallStack(): Array<{function: string, file: string, line: string}> {
+    if (!this.config.showCallStack) return [];
+    
+    const stack = new Error().stack || '';
+    const stackLines = stack.split('\n');
+    const callStack: Array<{function: string, file: string, line: string}> = [];
+    
+    // Skip the first 3 lines and limit depth
+    for (let i = 3; i < Math.min(stackLines.length, 3 + this.config.maxCallStackDepth); i++) {
+      const line = stackLines[i].trim();
+      const match = line.match(/at\s+(.+?)\s+\((.+?):(\d+):(\d+)\)/);
+      if (match) {
+        callStack.push({
+          function: match[1],
+          file: match[2].split('/').pop() || 'unknown',
+          line: match[3]
+        });
+      }
+    }
+    
+    return callStack;
+  }
+
+  /**
+   * Format the call stack for display
+   */
+  private formatCallStack(callStack: Array<{function: string, file: string, line: string}>): string {
+    if (!this.config.showCallStack || callStack.length === 0) return '';
+    
+    const stackLines = callStack.map((call, index) => {
+      const indent = '  '.repeat(index);
+      const arrow = index === 0 ? '└─' : '  └─';
+      return `${indent}${COLORS.SEPARATOR}${arrow} ${COLORS.CALLER}${call.function} (${call.file}:${call.line})${COLORS.RESET}`;
+    });
+    
+    return stackLines.join('\n');
+  }
+
+  /**
+   * Format section header
+   */
+  private formatSection(section: string): string {
+    if (!this.config.showSection) return '';
+    return `\n${COLORS.SECTION}=== ${section} ===${COLORS.RESET}\n`;
+  }
+
+  /**
+   * Format attributes
+   */
+  private formatAttributes(attributes: {[key: string]: any}): string {
+    if (!this.config.showAttributes) return '';
+    
+    const enabledAttrs = Object.entries(attributes)
+      .filter(([key]) => this.config.attributes[key])
+      .map(([key, value]) => `${COLORS.ATTRIBUTE}${key}: ${JSON.stringify(value)}${COLORS.RESET}`)
+      .join('\n');
+    
+    return enabledAttrs ? `\n${enabledAttrs}` : '';
+  }
+
+  private log(level: LogLevel, levelName: string, message: string, attributes: {[key: string]: any} = {}, ...args: any[]): void {
     if (!this.shouldLog(level)) return;
 
     const now = process.cpuUsage();
@@ -131,19 +316,9 @@ export class DebugLogger {
     const sinceLastCpu = this.getCpuTimeDiff(this.lastCpuUsage, now);
     this.lastCpuUsage = now;
     
-    // Get the call stack to find where the logger was called from
-    const stack = new Error().stack || '';
-    const stackLines = stack.split('\n');
-    const callerInfo = stackLines.length > 3 ? stackLines[3].trim() : 'unknown';
+    // Get the current call stack
+    const callStack = this.getCallStack();
     
-    // Extract file and line number from caller info
-    const callerMatch = callerInfo.match(/at\s+(.+?)\s+\((.+?):(\d+):(\d+)\)/);
-    const callerDetails = callerMatch ? {
-      function: callerMatch[1],
-      file: callerMatch[2].split('/').pop(),
-      line: callerMatch[3]
-    } : { function: 'unknown', file: 'unknown', line: '0' };
-
     // Get color based on log level
     const color = COLORS[levelName as keyof typeof COLORS] || COLORS.RESET;
     
@@ -156,58 +331,78 @@ export class DebugLogger {
       CRITICAL: '💥'
     }[levelName];
 
-    // Format with timestamp, level and caller information
-    const formattedMessage = [
-      `${COLORS.TIMESTAMP}[${timestamp}]${COLORS.RESET}`,
+    // Build the log message
+    const logParts = [
+      this.config.showTimestamp ? `${COLORS.TIMESTAMP}[${timestamp}]${COLORS.RESET}` : '',
       `${color}${levelEmoji} [${levelName}]${COLORS.RESET}`,
       `${color}${message}${COLORS.RESET}`,
-      args.length > 0 ? args : '',
-      `\n${COLORS.SEPARATOR}  └─ ${COLORS.CALLER}${callerDetails.function} (${callerDetails.file}:${callerDetails.line})${COLORS.RESET}`,
-      `\n${COLORS.SEPARATOR}  └─ ${COLORS.TIMESTAMP}CPU Time: ${totalCpu}s | Since last: ${sinceLastCpu}s${COLORS.RESET}`
-    ].join(' ');
+      this.formatAttributes(attributes),
+      this.formatCallStack(callStack),
+      this.config.showCpuTime ? `\n${COLORS.SEPARATOR}  └─ ${COLORS.TIMESTAMP}CPU Time: ${totalCpu}s | Since last: ${sinceLastCpu}s${COLORS.RESET}` : ''
+    ].filter(Boolean);
 
+    const formattedMessage = logParts.join(' ');
+
+    // Output to console
     if (args.length > 0) {
       console.log(formattedMessage, ...args);
     } else {
       console.log(formattedMessage);
     }
+
+    // Save to file if enabled
+    if (this.config.saveToFile && this.logFileStream) {
+      const fileMessage = formattedMessage.replace(/\x1b\[[0-9;]*m/g, '') + '\n';
+      this.logFileStream.write(fileMessage);
+    }
+  }
+
+  // Log level methods with attributes
+  public debug(message: string, attributes: {[key: string]: any} = {}, ...args: any[]): void {
+    this.log(LogLevel.DEBUG, 'DEBUG', message, attributes, ...args);
+  }
+
+  public info(message: string, attributes: {[key: string]: any} = {}, ...args: any[]): void {
+    this.log(LogLevel.INFO, 'INFO', message, attributes, ...args);
+  }
+
+  public warning(message: string, attributes: {[key: string]: any} = {}, ...args: any[]): void {
+    this.log(LogLevel.WARNING, 'WARNING', message, attributes, ...args);
+  }
+
+  public error(message: string, attributes: {[key: string]: any} = {}, ...args: any[]): void {
+    this.log(LogLevel.ERROR, 'ERROR', message, attributes, ...args);
+  }
+
+  public critical(message: string, attributes: {[key: string]: any} = {}, ...args: any[]): void {
+    this.log(LogLevel.CRITICAL, 'CRITICAL', message, attributes, ...args);
   }
 
   /**
-   * Debug level logs - only shown in debug mode
+   * Cleanup method to be called when the application exits
    */
-  public debug(message: string, ...args: any[]): void {
-    this.log(LogLevel.DEBUG, 'DEBUG', message, ...args);
-  }
-
-  /**
-   * Info level logs - shown in both modes
-   */
-  public info(message: string, ...args: any[]): void {
-    this.log(LogLevel.INFO, 'INFO', message, ...args);
-  }
-
-  /**
-   * Warning level logs
-   */
-  public warning(message: string, ...args: any[]): void {
-    this.log(LogLevel.WARNING, 'WARNING', message, ...args);
-  }
-
-  /**
-   * Error level logs
-   */
-  public error(message: string, ...args: any[]): void {
-    this.log(LogLevel.ERROR, 'ERROR', message, ...args);
-  }
-
-  /**
-   * Critical error logs
-   */
-  public critical(message: string, ...args: any[]): void {
-    this.log(LogLevel.CRITICAL, 'CRITICAL', message, ...args);
+  public cleanup(): void {
+    this.endSession();
   }
 }
 
 // Export a default instance for easy import
-export default DebugLogger.getInstance(); 
+const logger = DebugLogger.getInstance();
+
+// Handle process exit
+process.on('exit', () => {
+  logger.cleanup();
+});
+
+// Handle process termination
+process.on('SIGINT', () => {
+  logger.cleanup();
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  logger.cleanup();
+  process.exit(0);
+});
+
+export default logger; 
