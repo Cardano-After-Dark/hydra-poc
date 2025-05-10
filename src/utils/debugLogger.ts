@@ -13,23 +13,37 @@ export enum LogLevel {
   CRITICAL = 50
 }
 
+// ANSI color codes for terminal output
+const COLORS = {
+  RESET: '\x1b[0m',
+  DEBUG: '\x1b[36m',    // Cyan
+  INFO: '\x1b[32m',     // Green
+  WARNING: '\x1b[33m',  // Yellow
+  ERROR: '\x1b[31m',    // Red
+  CRITICAL: '\x1b[35m', // Magenta
+  TIMESTAMP: '\x1b[90m', // Gray
+  CALLER: '\x1b[90m',   // Gray
+  SEPARATOR: '\x1b[90m' // Gray
+};
+
 export class DebugLogger {
   private static instance: DebugLogger;
   private currentLevel: LogLevel;
   private isDebugMode: boolean;
+  private startCpuUsage: NodeJS.CpuUsage;
+  private lastCpuUsage: NodeJS.CpuUsage;
 
   private constructor() {
-    // More reliable debug mode detection
     this.isDebugMode = this.detectDebugMode();
-    
-    // In debug mode, show everything. In normal mode, only INFO and above
     this.currentLevel = this.isDebugMode ? LogLevel.DEBUG : LogLevel.INFO;
+    this.startCpuUsage = process.cpuUsage();
+    this.lastCpuUsage = this.startCpuUsage;
     
     // Log the debug mode status at initialization
     if (this.isDebugMode) {
-      console.log(`[DebugLogger] Debug mode ENABLED - showing all log levels`);
+      console.log(`${COLORS.DEBUG}⚡ Debug mode ENABLED - showing all log levels${COLORS.RESET}`);
     } else {
-      console.log(`[DebugLogger] Debug mode DISABLED - showing INFO and above only`);
+      console.log(`${COLORS.INFO}ℹ️ Debug mode DISABLED - showing INFO and above only${COLORS.RESET}`);
     }
   }
 
@@ -90,31 +104,72 @@ export class DebugLogger {
   }
 
   /**
+   * Convert CPU usage to seconds with 3 decimal places
+   */
+  private cpuUsageToSeconds(cpuUsage: NodeJS.CpuUsage): string {
+    // Convert microseconds to seconds
+    return ((cpuUsage.user + cpuUsage.system) / 1000000).toFixed(3);
+  }
+
+  /**
+   * Calculate CPU time difference between two measurements
+   */
+  private getCpuTimeDiff(start: NodeJS.CpuUsage, end: NodeJS.CpuUsage): string {
+    const diff = process.cpuUsage(start);
+    return this.cpuUsageToSeconds(diff);
+  }
+
+  /**
    * Format and output a log message
    */
   private log(level: LogLevel, levelName: string, message: string, ...args: any[]): void {
     if (!this.shouldLog(level)) return;
 
+    const now = process.cpuUsage();
     const timestamp = new Date().toISOString();
+    const totalCpu = this.getCpuTimeDiff(this.startCpuUsage, now);
+    const sinceLastCpu = this.getCpuTimeDiff(this.lastCpuUsage, now);
+    this.lastCpuUsage = now;
     
     // Get the call stack to find where the logger was called from
     const stack = new Error().stack || '';
     const stackLines = stack.split('\n');
-    // Skip the first 3 lines (Error, log method, and the specific log level method)
     const callerInfo = stackLines.length > 3 ? stackLines[3].trim() : 'unknown';
     
-    // Format with timestamp, level and caller information
-    const formattedMessage = `[${timestamp}] [${levelName}] ${message}`;
+    // Extract file and line number from caller info
+    const callerMatch = callerInfo.match(/at\s+(.+?)\s+\((.+?):(\d+):(\d+)\)/);
+    const callerDetails = callerMatch ? {
+      function: callerMatch[1],
+      file: callerMatch[2].split('/').pop(),
+      line: callerMatch[3]
+    } : { function: 'unknown', file: 'unknown', line: '0' };
+
+    // Get color based on log level
+    const color = COLORS[levelName as keyof typeof COLORS] || COLORS.RESET;
     
+    // Format the message with emojis based on level
+    const levelEmoji = {
+      DEBUG: '🔍',
+      INFO: 'ℹ️',
+      WARNING: '⚠️',
+      ERROR: '❌',
+      CRITICAL: '💥'
+    }[levelName];
+
+    // Format with timestamp, level and caller information
+    const formattedMessage = [
+      `${COLORS.TIMESTAMP}[${timestamp}]${COLORS.RESET}`,
+      `${color}${levelEmoji} [${levelName}]${COLORS.RESET}`,
+      `${color}${message}${COLORS.RESET}`,
+      args.length > 0 ? args : '',
+      `\n${COLORS.SEPARATOR}  └─ ${COLORS.CALLER}${callerDetails.function} (${callerDetails.file}:${callerDetails.line})${COLORS.RESET}`,
+      `\n${COLORS.SEPARATOR}  └─ ${COLORS.TIMESTAMP}CPU Time: ${totalCpu}s | Since last: ${sinceLastCpu}s${COLORS.RESET}`
+    ].join(' ');
+
     if (args.length > 0) {
       console.log(formattedMessage, ...args);
     } else {
       console.log(formattedMessage);
-    }
-    
-    // For debug level, add caller information
-    if (level === LogLevel.DEBUG && this.isDebugMode) {
-      console.log(`  └─ called from: ${callerInfo}`);
     }
   }
 

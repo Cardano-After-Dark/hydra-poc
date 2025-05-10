@@ -2,6 +2,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { getConfig } from './config';
 
+/*
+OLD LOGGER
+OLD LOGGER
+OLD LOGGER
+*/
+
+
 export class Logger {
   private static instance: Logger;
   private debugMode: boolean;

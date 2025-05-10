@@ -9,6 +9,7 @@ import * as path from 'path';
 const appLogger = Logger.getInstance();
 debugger
 async function sendMessage(message: string, senderAddress: Address, recipientAddress: string, amount: number, config: any) {
+    debugger
     try {
       // Create metadata with message
       const metadata = {
@@ -70,10 +71,13 @@ async function sendMessage(message: string, senderAddress: Address, recipientAdd
       appLogger.close();
     }
   }
-  
+
+
+
 // The message to send
 const message = "Now i am sending another message. "
 logger.debug(`Message "${message}" is being prepared for sending`);
 debugger
 // Run the test with the specified message
 test_send_message(message);
+debugger
