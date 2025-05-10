@@ -207,28 +207,54 @@ When both participants have committed their funds, the head automatically opens.
 
 ## Layer 2 Transactions
 
-Now you can perform fast layer 2 transactions within the Hydra head. To send funds from Alice to Bob:
+The Hydra Head implementation includes a Terminal User Interface (TUI) for sending messages and a real-time transaction stream viewer. These tools allow you to interact with the Hydra Head and monitor transactions in real-time.
 
+### Setting Up the Message Interface
+
+1. First, install the required dependencies:
 ```bash
-./scripts/transactions/send-tx.sh
+pnpm install
 ```
 
-This script:
-1. Creates a transaction that sends 1 ADA from Alice to Bob
-2. Embeds metadata in the transaction with a simple message that says "Hello from Hydra!"
-3. Signs it with Alice's key
-4. Formats it for the Hydra Head WebSocket API
-5. Submits it to the Hydra network
+2. Open two terminal windows side by side to run both components:
 
-The transaction processes almost instantly, and you'll see a `TxValid` message followed by a `SnapshotConfirmed` message showing the updated UTxO state.
-
-To verify the transaction, query the current head state:
-
+In the first terminal, start the TUI interface:
 ```bash
-curl -s 127.0.0.1:4001/snapshot/utxo | jq
+pnpm run tui
 ```
 
-This shows the current balances within the Hydra head.
+In the second terminal, start the transaction stream viewer:
+```bash
+pnpm run stream
+```
+
+### Using the Message Interface
+
+The TUI provides a user-friendly interface for sending messages through the Hydra Head:
+
+- Type your message and press Enter to send
+- Messages are sent as transactions with metadata
+- Each message includes:
+  - The message text
+  - Timestamp
+  - Sender identifier
+- The interface shows message status (sending/sent/error)
+- Use `clear` to clear message history
+- Type `exit` to quit the application
+
+### Transaction Stream Viewer
+
+The stream viewer provides real-time monitoring of transactions in the Hydra Head:
+
+- Displays transaction details including:
+  - Sender information
+  - Message content
+  - Transaction timestamp
+- Automatically parses and displays transaction metadata
+- Shows transaction validation status
+- Provides error reporting for failed transactions
+
+Both components work together to provide a complete interface for interacting with the Hydra Head, allowing you to send messages and monitor their processing in real-time.
 
 ## Closing the Hydra Head
 
