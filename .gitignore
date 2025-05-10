@@ -10,7 +10,9 @@ build/
 .env.local
 
 # IDE files
-.vscode/
+.vscode/*
+!.vscode/launch.json
+!.vscode/extensions.json
 .idea/
 
 # Logs
