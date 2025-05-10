@@ -62,6 +62,7 @@ const DEFAULT_CONFIG: LoggerConfig = {
 };
 
 import { spawn } from 'child_process';
+import * as fs from 'fs';
 
 export class DebugLogger {
   private static instance: DebugLogger;
@@ -173,7 +174,6 @@ export class DebugLogger {
    */
   private initializeLogFile(): void {
     if (this.config.logFilePath) {
-      const fs = require('fs');
       this.logFileStream = fs.createWriteStream(this.config.logFilePath, { flags: 'a' });
     }
   }

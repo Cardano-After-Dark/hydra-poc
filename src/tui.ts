@@ -1,11 +1,20 @@
 import { Address } from "@hyperionbt/helios";
 import { createTransactionFromUtxo } from "./core/builders/transactionBuilder";
 import { getConfig } from "./utils/config";
-import { Logger } from "./utils/logger";
+import logger, { LogLevel } from "./utils/debugLogger";
 import * as path from 'path';
 import * as readline from 'readline';
 
-const logger = Logger.getInstance();
+// Disable all logging
+logger.configure({
+  showTimestamp: false,
+  showCallStack: false,
+  showCpuTime: false,
+  showSection: false,
+  showAttributes: false,
+  saveToFile: false
+});
+logger.setLevel(LogLevel.CRITICAL); // Only show critical errors (effectively disabling all logging)
 
 interface Message {
   text: string;
@@ -128,16 +137,16 @@ async function sendMessage(text: string) {
 
     // Build raw transaction
     const rawTx = await builder.build();
-    logger.debug("Raw transaction built");
+    logger.debug("Raw transaction built", { transaction: { type: rawTx.type } });
 
     // Sign transaction
     const signingKeyFile = path.join(config.credentialsDir, 'alice/alice-funds.sk');
     const signedTx = await builder.sign(signingKeyFile);
-    logger.debug("Transaction signed");
+    logger.debug("Transaction signed", { transaction: { type: signedTx.type } });
 
     // Submit transaction to Hydra head
     await builder.submit(signedTx);
-    logger.info("Message sent successfully!");
+    logger.info("Message sent successfully!", { message: { text } });
 
     // Update message status
     const message = messages.find(msg => msg.timestamp === timestamp);
@@ -146,7 +155,8 @@ async function sendMessage(text: string) {
       displayScreen();
     }
   } catch (error) {
-    logger.error("Error sending message:", error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logger.error("Error sending message", { error: { message: errorMessage } });
     // Update message status
     const message = messages.find(msg => msg.timestamp === timestamp);
     if (message) {
