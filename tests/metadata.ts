@@ -4,6 +4,7 @@ import { getConfig } from "../src/utils/config";
 import { Logger } from "../src/utils/logger";
 import logger from "../src/utils/debugLogger";
 import * as path from 'path';
+import * as fs from 'fs';
 
 // Create an instance of the original logger for compatibility
 const appLogger = Logger.getInstance();
@@ -98,8 +99,10 @@ async function sendMessage(message: string, senderAddress: Address, recipientAdd
         config: { credentialsDir: config.credentialsDir }
       });
       
-      const senderAddress = Address.fromBech32("addr_test1vql8mpv20pdcr0pzqwyl23xsdejz5p9umc9rtk0xcha97vsuynzsz");
-      const recipientAddress = "addr_test1vql8mpv20pdcr0pzqwyl23xsdejz5p9umc9rtk0xcha97vsuynzsz";
+      debugger
+      const alice_address = path.join(config.credentialsDir, 'alice/alice-funds.addr');
+      const senderAddress = Address.fromBech32(fs.readFileSync(alice_address, 'utf8').trim());
+      const recipientAddress = senderAddress.toBech32(); // Use same address for testing
       const amount = 1000000; // 1 ADA in lovelace
   
       logger.info(`Sending message: "${messageToSend}"`, {
