@@ -113,13 +113,9 @@ async function sendMessage(message: string, senderAddress: Address, recipientAdd
       logger.info("Test completed successfully", {
         test: { message: messageToSend, status: 'success' }
       });
-      // logger.endSession();
-      
-      // Add a small delay to ensure all logs are written
-      await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Log success but don't exit
-      console.log('\n✅ Test completed successfully!');
+      logger.info('\n✅ Test completed successfully!');
       debugger
       return true;
     } catch (error) {

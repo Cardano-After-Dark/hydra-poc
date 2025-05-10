@@ -1,7 +1,7 @@
 import { Address } from "@hyperionbt/helios";
-import { createTransactionFromUtxo } from "./core/builders/transactionBuilder";
-import { getConfig } from "./utils/config";
-import logger, { LogLevel } from "./utils/debugLogger";
+import { createTransactionFromUtxo } from "../core/builders/transactionBuilder";
+import { getConfig } from "../utils/config";
+import logger, { LogLevel } from "../utils/debugLogger";
 import * as path from 'path';
 import * as readline from 'readline';
 import * as fs from 'fs';

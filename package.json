@@ -12,10 +12,10 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "start": "tsx src/index.ts",
-    "tui": "tsx src/tui.ts",
+    "tui": "tsx src/ui/tui.ts",
     "test": "tsx src/test.ts",
     "decode": "tsx src/utils/decode.ts",
-    "stream": "tsx src/watch_stream.ts",
+    "stream": "tsx src/adapters/watch_stream.ts",
     "test:metadata": "tsx tests/metadata.ts",
     "test:file": "tsx"
   },

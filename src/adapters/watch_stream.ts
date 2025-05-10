@@ -1,4 +1,4 @@
-import { startStream } from './stream';
+import { startStream } from '../core/stream';
 import { Transaction } from "@emurgo/cardano-serialization-lib-nodejs";
 
 const metadataKey = '1337';

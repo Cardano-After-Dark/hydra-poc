@@ -1,5 +1,5 @@
-import { Logger } from './utils/logger';
-import { getConfig } from './utils/config';
+import { Logger } from '../utils/logger';
+import { getConfig } from '../utils/config';
 
 const logger = Logger.getInstance();
 
