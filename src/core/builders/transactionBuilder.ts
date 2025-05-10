@@ -7,6 +7,8 @@ import logger from "../../utils/debugLogger";
 import { CardanoCli } from "../../adapters/cardanoCli";
 import * as path from 'path';
 import * as fs from 'fs';
+import WebSocket from 'ws';
+
 
 export class HydraTransactionBuilder {
   private transaction: Transaction;

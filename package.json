@@ -4,6 +4,7 @@
     "@types/node": "^22.13.5",
     "@types/prompt-sync": "^4.2.3",
     "@types/react": "^18.2.55",
+    "@types/ws": "^8.18.1",
     "tsx": "^4.19.3",
     "typescript": "^5.7.3"
   },
