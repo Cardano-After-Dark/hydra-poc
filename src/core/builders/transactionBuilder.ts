@@ -3,12 +3,10 @@ import { getUtxos } from "../../adapters/hydraAdapter";
 import { Utxos } from "../types/utxo";
 import { Transaction, TransactionInput, TransactionOutput, TransactionMetadata, RawTransaction, SignedTransaction } from "../types/transaction";
 import { getConfig } from "../../utils/config";
-import { Logger } from "../../utils/logger";
+import logger from "../../utils/debugLogger";
 import { CardanoCli } from "../../adapters/cardanoCli";
 import * as path from 'path';
 import * as fs from 'fs';
-
-const logger = Logger.getInstance();
 
 export class HydraTransactionBuilder {
   private transaction: Transaction;
