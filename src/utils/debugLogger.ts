@@ -148,19 +148,19 @@ export class DebugLogger {
     console.log(sessionEndMessage);
 
     // Simulate the debugger stop command
-    if (process.platform === 'darwin') { // macOS
-      spawn('osascript', [
-        '-e',
-        'tell application "System Events" to key code 89 using {option down}' // alt+numpad7
-      ]);
-    } else if (process.platform === 'win32') { // Windows
-      spawn('powershell', [
-        '-command',
-        '[System.Windows.Forms.SendKeys]::SendWait("^{F5}")' // Ctrl+F5
-      ]);
-    } else { // Linux
-      spawn('xdotool', ['key', 'alt+KP_7']); // alt+numpad7
-    }
+    // if (process.platform === 'darwin') { // macOS
+    //   spawn('osascript', [
+    //     '-e',
+    //     'tell application "System Events" to key code 89 using {option down}' // alt+numpad7
+    //   ]);
+    // } else if (process.platform === 'win32') { // Windows
+    //   spawn('powershell', [
+    //     '-command',
+    //     '[System.Windows.Forms.SendKeys]::SendWait("^{F5}")' // Ctrl+F5
+    //   ]);
+    // } else { // Linux
+    //   spawn('xdotool', ['key', 'alt+KP_7']); // alt+numpad7
+    // }
 
     // Add a small delay to allow the message to be read
     setTimeout(() => {
