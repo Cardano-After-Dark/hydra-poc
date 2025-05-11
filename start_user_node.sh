@@ -15,6 +15,11 @@ else
     exit 1
 fi
 
+#    - Adjusts the fees and pricing mechanisms to zero, ensuring that transactions within the Hydra head incur no costs.
+cardano-cli query protocol-parameters \
+  | jq '.txFeeFixed = 0 |.txFeePerByte = 0 | .executionUnitPrices.priceMemory = 0 | .executionUnitPrices.priceSteps = 0' \
+  > ${PARAMS_DIR}/protocol-parameters.json
+
 HYDRA_SCRIPTS_TX_ID=$(curl https://raw.githubusercontent.com/cardano-scaling/hydra/master/networks.json | jq -r ".preprod.\"${HYDRA_VERSION}\"")
 
 hydra-node \
