@@ -5,6 +5,7 @@ import logger, { LogLevel } from "../utils/debugLogger";
 import * as path from 'path';
 import * as readline from 'readline';
 import * as fs from 'fs';
+import { chunkMessage, MessageChunk } from '../utils/messageChunker';
 
 // Disable all logging
 logger.configure({
@@ -115,57 +116,59 @@ async function sendMessage(text: string) {
     const config = getConfig();
     const alice_address = path.join(config.credentialsDir, 'alice/alice-funds.addr');
     const senderAddress = Address.fromBech32(fs.readFileSync(alice_address, 'utf8').trim());
-    const recipientAddress = senderAddress.toBech32(); // Use same address for testing
-    const amount = 1000000; // 1 ADA in lovelace
+    const recipientAddress = senderAddress.toBech32();
+    const amount = 1000000;
 
-    // Create metadata with message
-    const metadata = {
-      1337: { 
-        msg: text,
-        msg_id: Date.now().toString(),
-        sender: senderAddress.toBech32(),
-        timestamp: new Date().toISOString()
-      }
-    };
+    // Create metadata with chunks for any message
+    const chunks = chunkMessage(text);
+    const msgId = Date.now().toString();
 
-    // Create transaction builder
-    const builder = await createTransactionFromUtxo(
-      senderAddress,
-      recipientAddress,
-      amount
-    );
+    // Send each chunk in sequence
+    for (let i = 0; i < chunks.length; i++) {
+      const metadata = {
+        1337: {
+          msg: chunks[i].text,
+          msg_id: msgId,
+          sender: senderAddress.toBech32(),
+          timestamp: new Date().toISOString(),
+          total_chunks: chunks.length.toString(),
+          chunk_index: i.toString()
+        }
+      };
 
-    // Add metadata to transaction
-    builder.setMetadata(metadata);
+      // Create transaction builder
+      const builder = await createTransactionFromUtxo(
+        senderAddress,
+        recipientAddress,
+        amount
+      );
 
-    // Build raw transaction
-    const rawTx = await builder.build();
-    logger.debug("Raw transaction built", { transaction: { type: rawTx.type } });
+      // Add metadata to transaction
+      builder.setMetadata(metadata);
 
-    // Sign transaction
-    const signingKeyFile = path.join(config.credentialsDir, 'alice/alice-funds.sk');
-    const signedTx = await builder.sign(signingKeyFile);
-    logger.debug("Transaction signed", { transaction: { type: signedTx.type } });
+      // Build and sign transaction
+      const rawTx = await builder.build();
+      const signingKeyFile = path.join(config.credentialsDir, 'alice/alice-funds.sk');
+      const signedTx = await builder.sign(signingKeyFile);
 
-    // Submit transaction to Hydra head
-    await builder.submit(signedTx);
-    logger.info("Message sent successfully!", { message: { text } });
+      // Submit transaction to Hydra head
+      await builder.submit(signedTx);
+    }
 
     // Update message status
     const message = messages.find(msg => msg.timestamp === timestamp);
     if (message) {
       message.status = 'sent';
-      displayScreen();
     }
+    displayScreen();
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    logger.error("Error sending message", { error: { message: errorMessage } });
-    // Update message status
+    // Update message status to error
     const message = messages.find(msg => msg.timestamp === timestamp);
     if (message) {
       message.status = 'error';
-      displayScreen();
     }
+    displayScreen();
+    throw error;
   }
 }
 
