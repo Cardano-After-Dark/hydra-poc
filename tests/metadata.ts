@@ -28,9 +28,26 @@ function getRandomMessage(): string {
   return TEST_MESSAGES[randomIndex];
 }
 
+function getMessageByteLength(message: string): number {
+  return new TextEncoder().encode(message).length;
+}
+
+function validateMessageLength(message: string, maxBytes: number = 64): boolean {
+  const byteLength = getMessageByteLength(message);
+  logger.debug(`Message length check: ${byteLength} bytes`, {
+    validation: { message, byteLength, maxBytes }
+  });
+  return byteLength <= maxBytes;
+}
+
 async function sendMessage(message: string, senderAddress: Address, recipientAddress: string, amount: number, config: any) {
     debugger
     try {
+      // Validate message length
+      if (!validateMessageLength(message)) {
+        throw new Error(`Message exceeds maximum length of 64 bytes. Current length: ${getMessageByteLength(message)} bytes`);
+      }
+
       // Create metadata with message
       const metadata = {
         1337: { 
