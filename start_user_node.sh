@@ -18,7 +18,7 @@ fi
 HYDRA_SCRIPTS_TX_ID=$(curl https://raw.githubusercontent.com/cardano-scaling/hydra/master/networks.json | jq -r ".preprod.\"${HYDRA_VERSION}\"")
 
 hydra-node \
-  --node-id "mynode-node" \
+  --node-id "${USERNAME}-node" \
   --persistence-dir "${PERSISTENCE_DIR}/persistence-${USERNAME}" \
   --cardano-signing-key "${CREDENTIALS_DIR}/${USERNAME}/${USERNAME}-node.sk" \
   --hydra-signing-key "${CREDENTIALS_DIR}/${USERNAME}/${USERNAME}-hydra.sk" \
@@ -26,11 +26,11 @@ hydra-node \
   --ledger-protocol-parameters "${PARAMS_DIR}/protocol-parameters.json" \
   --testnet-magic "${TESTNET_MAGIC}" \
   --node-socket "${CARDANO_NODE_SOCKET_PATH}" \
-  --api-port "${${USERNAME}_API_PORT}" \
+  --api-port "${MY_API_PORT}" \
   --host 0.0.0.0 \
   --api-host 0.0.0.0 \
-  --port "${${USERNAME}_PORT}" \
+  --port "${MY_PORT}" \
   --peer "${PEER_NODE_IP}:${PEER_NODE_PORT}" \
-  --hydra-verification-key "${CREDENTIALS_DIR}/bob/bob-hydra.vk" \
-  --cardano-verification-key "${CREDENTIALS_DIR}/bob/bob-node.vk"
+  --hydra-verification-key "${CREDENTIALS_DIR}/${PEER_USERNAME}/${PEER_USERNAME}-hydra.vk" \
+  --cardano-verification-key "${CREDENTIALS_DIR}/${PEER_USERNAME}/${PEER_USERNAME}-node.vk"
 
