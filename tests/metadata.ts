@@ -28,26 +28,9 @@ function getRandomMessage(): string {
   return TEST_MESSAGES[randomIndex];
 }
 
-function getMessageByteLength(message: string): number {
-  return new TextEncoder().encode(message).length;
-}
-
-function validateMessageLength(message: string, maxBytes: number = 64): boolean {
-  const byteLength = getMessageByteLength(message);
-  logger.debug(`Message length check: ${byteLength} bytes`, {
-    validation: { message, byteLength, maxBytes }
-  });
-  return byteLength <= maxBytes;
-}
-
 async function sendMessage(message: string, senderAddress: Address, recipientAddress: string, amount: number, config: any) {
     debugger
     try {
-      // Validate message length
-      if (!validateMessageLength(message)) {
-        throw new Error(`Message exceeds maximum length of 64 bytes. Current length: ${getMessageByteLength(message)} bytes`);
-      }
-
       // Create metadata with message
       const metadata = {
         1337: { 
@@ -130,9 +113,13 @@ async function sendMessage(message: string, senderAddress: Address, recipientAdd
       logger.info("Test completed successfully", {
         test: { message: messageToSend, status: 'success' }
       });
+      // logger.endSession();
+      
+      // Add a small delay to ensure all logs are written
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Log success but don't exit
-      logger.info('\n✅ Test completed successfully!');
+      console.log('\n✅ Test completed successfully!');
       debugger
       return true;
     } catch (error) {
