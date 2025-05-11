@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# This script serves as a central entry point for all Hydra management tasks
+# It ensures scripts are always run from the correct directory context
+
+# Get absolute path to the project root
+PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$PROJECT_ROOT"
+
+# Export environment for all scripts
+if [ -f ".env" ]; then
+    set -a
+    source .env
+    set +a
+fi
+
+# Command mapping
+case "$1" in
+    install)
+        ./scripts/core/install.sh
+        ;;
+    cardano-node)
+        ./scripts/core/setup-cardano-node.sh
+        ;;
+    setup-funds)
+        ./scripts/core/setup-and-fund-nodes.sh
+        ;;
+    alice-node)
+        ./scripts/core/start-alice-node.sh
+        ;;
+    bob-node)
+        ./scripts/core/start-bob-node.sh
+        ;;
+    init-head)
+        ./scripts/transactions/commit-funds.sh
+        ;;
+    scan)
+        ./scripts/core/scan-head-metadata.sh
+        ;;
+    env)
+        ./scripts/utils/set-env-vars.sh
+        ;;
+    *)
+        echo "Hydra Node Manager"
+        echo ""
+        echo "Available commands:"
+        echo "  install       - Install required dependencies"
+        echo "  cardano-node  - Set up and start Cardano node"
+        echo "  setup-funds   - Set up funding wallet and distribute funds"
+        echo "  alice-node    - Start Alice's Hydra node"
+        echo "  bob-node      - Start Bob's Hydra node"
+        echo "  init-head     - Initialize Hydra Head (run after nodes are started)"
+        echo "  scan          - Monitor Hydra head for transactions"
+        echo "  env           - Set up environment variables"
+        echo ""
+        echo "Example sequence:"
+        echo "  install"
+        echo "  cardano-node"
+        echo "  setup-funds"
+        echo "  Terminal 1: alice-node"
+        echo "  Terminal 2: bob-node"
+        echo "  Terminal 3: init-head"
+        echo "  Terminal 4: scan"
+        ;;
+esac 

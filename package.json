@@ -10,6 +10,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "setup": "tsx src/guided-setup.ts",
     "dev": "tsc --watch",
     "start": "tsx src/index.ts",
     "tui": "tsx src/ui/tui.ts",
@@ -17,7 +18,8 @@
     "decode": "tsx src/utils/decode.ts",
     "stream": "tsx src/adapters/watch_stream.ts",
     "test:metadata": "tsx tests/metadata.ts",
-    "test:file": "tsx"
+    "test:file": "tsx",
+    "guided-setup": "tsx src/guided-setup.ts"
   },
   "dependencies": {
     "@emurgo/cardano-serialization-lib-nodejs": "^14.1.1",
