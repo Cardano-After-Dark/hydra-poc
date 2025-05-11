@@ -31,7 +31,7 @@ case "$1" in
     bob-node)
         ./scripts/core/start-bob-node.sh
         ;;
-    init-head)
+    commit-funds)
         ./scripts/transactions/commit-funds.sh
         ;;
     scan)
