@@ -3,27 +3,32 @@ import { Transaction } from "@emurgo/cardano-serialization-lib-nodejs";
 
 const metadataKey = '1337';
 
-function parseMetadataToObject(metadata: Record<string, any>, key: string): Record<string, string> {
+function parseMetadataToObject(metadata: Record<string, any>, key: string): Record<string, any> {
     // console.log('Metadata before parsing:', metadata);
     const rawData = JSON.parse(metadata.get(key)!);
     // console.log('Raw data after JSON parse:', rawData);
-    const result = rawData.map.reduce((acc: Record<string, string>, item: any) => {
-        // console.log('Processing item:', item);
-        acc[item.k.string] = item.v.string;
-        return acc;
-    }, {});
-    // console.log('Final parsed result:', result);
-    return result;
+    
+    // Recursive function to handle nested structures
+    const processValue = (value: any): any => {
+        if (value.string !== undefined) return value.string;
+        if (value.int !== undefined) return parseInt(value.int);
+        if (value.list !== undefined) return value.list.map(processValue);
+        if (value.map !== undefined) {
+            return value.map.reduce((acc: Record<string, any>, item: any) => {
+                acc[item.k.string] = processValue(item.v);
+                return acc;
+            }, {});
+        }
+        return value;
+    };
+    
+    return processValue(rawData);
 }
 
 interface MessageChunk {
   text: string;
   index: number;
-  total: number;
 }
-
-// Keep track of message chunks
-const messageChunks = new Map<string, MessageChunk[]>();
 
 const onMessage = (message: any) => {
   if (message.tag === 'TxValid') {
@@ -34,58 +39,39 @@ const onMessage = (message: any) => {
       
       if (txValue.auxiliary_data && txValue.auxiliary_data.metadata) {
         const metadata = txValue.auxiliary_data.metadata as Record<string, any>;
-        const cleanObject = parseMetadataToObject(metadata, metadataKey);
+        const messageData = parseMetadataToObject(metadata, metadataKey);
         
-        const msgId = cleanObject.msg_id;
-        const chunkIndex = parseInt(cleanObject.chunk_index);
-        const totalChunks = parseInt(cleanObject.total_chunks);
-
-        // Validate chunk data
-        if (isNaN(chunkIndex) || isNaN(totalChunks) || totalChunks <= 0 || chunkIndex < 0 || chunkIndex >= totalChunks) {
-          console.error('Invalid chunk data:', { chunkIndex, totalChunks, msgId });
-          return;
-        }
+        const msgId = messageData.msg_id;
+        const sender = messageData.sender;
+        const timestamp = messageData.timestamp;
+        const totalChunks = parseInt(messageData.total_chunks);
         
-        // Create or update chunk array for this message
-        if (!messageChunks.has(msgId)) {
-          try {
-            messageChunks.set(msgId, new Array(totalChunks).fill(null));
-          } catch (error) {
-            console.error('Failed to create chunks array:', { totalChunks, msgId, error });
-            return;
-          }
-        }
-        const chunks = messageChunks.get(msgId)!;
-        
-        // Add this chunk
-        chunks[chunkIndex] = {
-          text: cleanObject.msg,
-          index: chunkIndex,
-          total: totalChunks
-        };
-        
-        // Check if we have all chunks
-        if (chunks.every(chunk => chunk !== null)) {
-          // Sort and combine chunks
-          const sortedChunks = chunks.sort((a, b) => a.index - b.index);
+        // Check if we have chunks array in the new format
+        if (messageData.chunks && Array.isArray(messageData.chunks)) {
+          // Sort chunks by index
+          const sortedChunks = [...messageData.chunks]
+            .map(chunk => ({
+              text: chunk.text,
+              index: parseInt(chunk.index)
+            }))
+            .sort((a, b) => a.index - b.index);
+            
+          // Combine chunks into full message
           const fullMessage = sortedChunks.map(chunk => chunk.text).join('');
           
           const transactionDetails = {
-            sender: cleanObject.sender,
+            sender: sender,
             message: {
               text: fullMessage,
-              timestamp: cleanObject.timestamp,
+              timestamp: timestamp,
               chunks: sortedChunks
             },
             msg_id: msgId
           };
 
           console.log('Received complete message:', transactionDetails);
-          
-          // Clean up
-          messageChunks.delete(msgId);
         } else {
-          console.log(`Received chunk ${chunkIndex + 1}/${totalChunks} of message ${msgId}`);
+          console.log('No chunks array found in metadata');
         }
       } else {
         console.log('No metadata found in transaction');
@@ -102,7 +88,6 @@ const onError = (error: Error) => {
 
 // Start the stream
 const stream = startStream(onMessage, onError);
-
 
 // When you're done, close the stream
 // stream.close();

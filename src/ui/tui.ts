@@ -123,37 +123,37 @@ async function sendMessage(text: string) {
     const chunks = chunkMessage(text);
     const msgId = Date.now().toString();
 
-    // Send each chunk in sequence
-    for (let i = 0; i < chunks.length; i++) {
-      const metadata = {
-        1337: {
-          msg: chunks[i].text,
-          msg_id: msgId,
-          sender: senderAddress.toBech32(),
-          timestamp: new Date().toISOString(),
-          total_chunks: chunks.length.toString(),
-          chunk_index: i.toString()
-        }
-      };
+    // Create a single metadata object with all chunks
+    const metadata = {
+      1337: {
+        msg_id: msgId,
+        sender: senderAddress.toBech32(),
+        timestamp: new Date().toISOString(),
+        total_chunks: chunks.length.toString(),
+        chunks: chunks.map((chunk, index) => ({
+          text: chunk.text,
+          index: index.toString()
+        }))
+      }
+    };
 
-      // Create transaction builder
-      const builder = await createTransactionFromUtxo(
-        senderAddress,
-        recipientAddress,
-        amount
-      );
+    // Create transaction builder
+    const builder = await createTransactionFromUtxo(
+      senderAddress, 
+      recipientAddress,
+      amount
+    );
 
-      // Add metadata to transaction
-      builder.setMetadata(metadata);
+    // Add metadata to transaction
+    builder.setMetadata(metadata);
 
-      // Build and sign transaction
-      const rawTx = await builder.build();
-      const signingKeyFile = path.join(config.credentialsDir, `${username}/${username}-funds.sk`);
-      const signedTx = await builder.sign(signingKeyFile);
+    // Build and sign transaction
+    const rawTx = await builder.build();
+    const signingKeyFile = path.join(config.credentialsDir, `${username}/${username}-funds.sk`);
+    const signedTx = await builder.sign(signingKeyFile);
 
-      // Submit transaction to Hydra head
-      await builder.submit(signedTx);
-    }
+    // Submit transaction to Hydra head
+    await builder.submit(signedTx);
 
     // Update message status
     const message = messages.find(msg => msg.timestamp === timestamp);
