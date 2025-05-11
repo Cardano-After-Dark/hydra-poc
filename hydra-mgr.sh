@@ -55,6 +55,7 @@ case "$1" in
         echo ""
         echo "Example sequence:"
         echo "  install"
+        echo "  env"
         echo "  cardano-node"
         echo "  setup-funds"
         echo "  Terminal 1: alice-node"
