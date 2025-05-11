@@ -25,8 +25,8 @@ interface Message {
 }
 
 const messages: Message[] = [];
-
 let currentInput = '';
+let username = ''; // Store the username
 
 function updateInput(char: string) {
   if (char === '\x7f' || char === '\b') { // Handle both backspace and delete
@@ -87,7 +87,7 @@ function displayScreen() {
         return `${msg.timestamp} ${statusIcon} ${msg.text}`;
       });
   
-  const messageBox = drawBox(width, height - 4, 'Message History', messageContent);
+  const messageBox = drawBox(width, height - 4, `Message History (${username})`, messageContent);
   messageBox.forEach(line => console.log(line));
   
   // Draw input box
@@ -114,8 +114,8 @@ async function sendMessage(text: string) {
 
   try {
     const config = getConfig();
-    const alice_address = path.join(config.credentialsDir, 'alice/alice-funds.addr');
-    const senderAddress = Address.fromBech32(fs.readFileSync(alice_address, 'utf8').trim());
+    const userAddressFile = path.join(config.credentialsDir, `${username}/${username}-funds.addr`);
+    const senderAddress = Address.fromBech32(fs.readFileSync(userAddressFile, 'utf8').trim());
     const recipientAddress = senderAddress.toBech32();
     const amount = 1000000;
 
@@ -148,7 +148,7 @@ async function sendMessage(text: string) {
 
       // Build and sign transaction
       const rawTx = await builder.build();
-      const signingKeyFile = path.join(config.credentialsDir, 'alice/alice-funds.sk');
+      const signingKeyFile = path.join(config.credentialsDir, `${username}/${username}-funds.sk`);
       const signedTx = await builder.sign(signingKeyFile);
 
       // Submit transaction to Hydra head
@@ -172,7 +172,24 @@ async function sendMessage(text: string) {
   }
 }
 
+async function promptForUsername(): Promise<string> {
+  return new Promise((resolve) => {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+    
+    rl.question('Enter your username (e.g., alice, bob): ', (answer) => {
+      rl.close();
+      resolve(answer.trim() || 'alice'); // Default to 'alice' if empty
+    });
+  });
+}
+
 async function main() {
+  // Ask for username before starting the TUI
+  username = await promptForUsername();
+  
   // Enable raw mode for precise input control
   process.stdin.setRawMode(true);
   process.stdin.resume();
