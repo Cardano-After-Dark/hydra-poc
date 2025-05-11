@@ -16,13 +16,11 @@ else
     exit 1
 fi
 
-# Navigate to preprod directory
-cd ${NODE_DIR}/preprod
-
 # Check if the database directory exists
-if [ ! -d "db" ]; then
+
+if [ ! -d "${NODE_DIR}/${NETWORK}/db" ]; then
     echo "First-time setup: Downloading blockchain snapshot..."
-    mithril-client cardano-db download latest
+    cd "${NODE_DIR}/${NETWORK}" && mithril-client cardano-db download latest
 else
     echo "Database already exists, skipping download..."
 fi
@@ -30,7 +28,7 @@ fi
 # Start the Cardano node
 echo "Starting Cardano node..."
 cardano-node run \
-  --topology topology.json \
-  --database-path db \
-  --socket-path node.socket \
-  --config config.json
+  --topology ${NODE_DIR}/${NETWORK}/topology.json \
+  --database-path ${NODE_DIR}/${NETWORK}/db \
+  --socket-path ${NODE_DIR}/${NETWORK}/node.socket \
+  --config ${NODE_DIR}/${NETWORK}/config.json
