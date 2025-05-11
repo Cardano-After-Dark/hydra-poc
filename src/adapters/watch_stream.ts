@@ -16,7 +16,15 @@ function parseMetadataToObject(metadata: Record<string, any>, key: string): Reco
     return result;
 }
 
-// Create callbacks for handling messages and errors
+interface MessageChunk {
+  text: string;
+  index: number;
+  total: number;
+}
+
+// Keep track of message chunks
+const messageChunks = new Map<string, MessageChunk[]>();
+
 const onMessage = (message: any) => {
   if (message.tag === 'TxValid') {
     try {
@@ -24,23 +32,61 @@ const onMessage = (message: any) => {
       const tx = Transaction.from_bytes(Buffer.from(txHex, 'hex'));
       const txValue = tx.to_js_value();
       
-      // Get the transaction input details
-      const input = txValue.body.inputs[0];
-      const txHash = input.transaction_id;
-      const outputIndex = input.index;
-
       if (txValue.auxiliary_data && txValue.auxiliary_data.metadata) {
         const metadata = txValue.auxiliary_data.metadata as Record<string, any>;
         const cleanObject = parseMetadataToObject(metadata, metadataKey);
         
-        const transactionDetails = {
-          sender: cleanObject.sender,
-          message: cleanObject.msg,
-          timestamp: cleanObject.timestamp
-        };
+        const msgId = cleanObject.msg_id;
+        const chunkIndex = parseInt(cleanObject.chunk_index);
+        const totalChunks = parseInt(cleanObject.total_chunks);
 
-        console.log(transactionDetails);
+        // Validate chunk data
+        if (isNaN(chunkIndex) || isNaN(totalChunks) || totalChunks <= 0 || chunkIndex < 0 || chunkIndex >= totalChunks) {
+          console.error('Invalid chunk data:', { chunkIndex, totalChunks, msgId });
+          return;
+        }
         
+        // Create or update chunk array for this message
+        if (!messageChunks.has(msgId)) {
+          try {
+            messageChunks.set(msgId, new Array(totalChunks).fill(null));
+          } catch (error) {
+            console.error('Failed to create chunks array:', { totalChunks, msgId, error });
+            return;
+          }
+        }
+        const chunks = messageChunks.get(msgId)!;
+        
+        // Add this chunk
+        chunks[chunkIndex] = {
+          text: cleanObject.msg,
+          index: chunkIndex,
+          total: totalChunks
+        };
+        
+        // Check if we have all chunks
+        if (chunks.every(chunk => chunk !== null)) {
+          // Sort and combine chunks
+          const sortedChunks = chunks.sort((a, b) => a.index - b.index);
+          const fullMessage = sortedChunks.map(chunk => chunk.text).join('');
+          
+          const transactionDetails = {
+            sender: cleanObject.sender,
+            message: {
+              text: fullMessage,
+              timestamp: cleanObject.timestamp,
+              chunks: sortedChunks
+            },
+            msg_id: msgId
+          };
+
+          console.log('Received complete message:', transactionDetails);
+          
+          // Clean up
+          messageChunks.delete(msgId);
+        } else {
+          console.log(`Received chunk ${chunkIndex + 1}/${totalChunks} of message ${msgId}`);
+        }
       } else {
         console.log('No metadata found in transaction');
       }
