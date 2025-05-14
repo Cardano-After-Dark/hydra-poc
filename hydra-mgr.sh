@@ -91,6 +91,7 @@ case "$1" in
         echo "  fund-demo               - Fund demo wallets"
         echo "  alice-node              - Start Alice's Hydra node"
         echo "  bob-node                - Start Bob's Hydra node"
+        echo "  commit-funds-demo       - After initializing the Hydra Head, commit funds to the demo"
         echo ""
         echo "Available commands:"
         echo "  TODO"
