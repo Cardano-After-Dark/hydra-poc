@@ -20,9 +20,6 @@ alice-node:
 bob-node:
 	./hydra-mgr.sh bob-node
 
-commit-funds:
-	./hydra-mgr.sh commit-funds
-
 scan:
 	./hydra-mgr.sh scan
 
