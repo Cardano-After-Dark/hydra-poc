@@ -108,4 +108,11 @@ curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/input-out
 # Make binaries executable
 chmod +x bin/*
 
-echo "Installation complete. Check that all components were downloaded successfully in the 'node' directory."
+echo "Installation complete!"
+echo "Installed components:"
+echo "- Cardano Node: $(bin/cardano-node --version 2>/dev/null || echo "Not found or version check failed")"
+echo "- Cardano CLI: $(bin/cardano-cli --version 2>/dev/null || echo "Not found or version check failed")"
+echo "- Hydra Node: $(bin/hydra-node --version 2>/dev/null || echo "Not found or version check failed")"
+echo "- Mithril Client: $(bin/mithril-client --version 2>/dev/null || echo "Not found or version check failed")"
+echo ""
+echo "All components have been installed to: ${PWD}/bin"
