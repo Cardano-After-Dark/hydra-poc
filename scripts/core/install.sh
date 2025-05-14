@@ -3,50 +3,101 @@
 mkdir -p infra/node/bin
 cd infra/node
 
-# Check and install dependencies
-for pkg in curl jq websocat; do
-    if ! brew list $pkg &>/dev/null; then
-        echo "Installing $pkg..."
-        brew install $pkg
-    fi
-done
+# Detect operating system
+os_type=$(uname -s)
 
-hydra_version=0.20.0
+# Check and install dependencies based on OS
+if [ "$os_type" = "Darwin" ]; then
+    # macOS dependencies
+    for pkg in curl jq websocat; do
+        if ! brew list $pkg &>/dev/null; then
+            echo "Installing $pkg..."
+            brew install $pkg
+        fi
+    done
+elif [ "$os_type" = "Linux" ]; then
+    # Ubuntu Linux dependencies
+    if [ -x "$(command -v apt-get)" ]; then
+        echo "Updating package lists..."
+        sudo apt-get update
+        
+        # Install curl and jq from apt
+        for pkg in curl jq; do
+            if ! dpkg -l $pkg &>/dev/null; then
+                echo "Installing $pkg..."
+                sudo apt-get install -y $pkg
+            fi
+        done
+        
+        # Install websocat from binary release since it's not in default repositories
+        if ! command -v websocat &>/dev/null; then
+            echo "Installing websocat from binary release..."
+            curl -L -o /tmp/websocat.tar.gz https://github.com/vi/websocat/releases/download/v1.11.0/websocat.x86_64-unknown-linux-musl.tar.gz
+            tar -xf /tmp/websocat.tar.gz -C /tmp
+            sudo mv /tmp/websocat /usr/local/bin/
+            sudo chmod +x /usr/local/bin/websocat
+            rm -f /tmp/websocat.tar.gz
+        fi
+    else
+        echo "Error: This script only supports Ubuntu-based Linux distributions with apt-get"
+        exit 1
+    fi
+else
+    echo "Unsupported operating system: $os_type"
+    exit 1
+fi
+
+hydra_version=0.21.0
 cardano_node_version=10.1.2
 
 # Detect architecture
 arch=$(uname -m)
-if [ "$arch" = "arm64" ]; then
-  hydra_arch="aarch64"
+if [ "$arch" = "arm64" ] || [ "$arch" = "aarch64" ]; then
+    hydra_arch="aarch64"
 else
-  hydra_arch="x86_64"
+    hydra_arch="x86_64"
 fi
 
-# Download Hydra for appropriate architecture
-curl -L -O https://github.com/cardano-scaling/hydra/releases/download/${hydra_version}/hydra-${hydra_arch}-darwin-${hydra_version}.zip
-unzip -d bin hydra-${hydra_arch}-darwin-${hydra_version}.zip
-
-# Download and extract Cardano node binaries
-curl -L -O https://github.com/IntersectMBO/cardano-node/releases/download/${cardano_node_version}/cardano-node-${cardano_node_version}-macos.tar.gz
-
-# Use a simpler tar extraction approach
-tar -xf cardano-node-${cardano_node_version}-macos.tar.gz
+# Download Hydra for appropriate architecture and OS
+if [ "$os_type" = "Darwin" ]; then
+    curl -L -O https://github.com/cardano-scaling/hydra/releases/download/${hydra_version}/hydra-${hydra_arch}-darwin-${hydra_version}.zip
+    unzip -d bin hydra-${hydra_arch}-darwin-${hydra_version}.zip
+    
+    # Download and extract Cardano node binaries for macOS
+    curl -L -O https://github.com/IntersectMBO/cardano-node/releases/download/${cardano_node_version}/cardano-node-${cardano_node_version}-macos.tar.gz
+    tar -xf cardano-node-${cardano_node_version}-macos.tar.gz
+elif [ "$os_type" = "Linux" ] && [ "$arch" = "x86_64" ]; then
+    curl -L -O https://github.com/cardano-scaling/hydra/releases/download/${hydra_version}/hydra-${hydra_arch}-linux-${hydra_version}.zip
+    unzip -d bin hydra-${hydra_arch}-linux-${hydra_version}.zip
+    
+    # Download and extract Cardano node binaries for Linux
+    curl -L -O https://github.com/IntersectMBO/cardano-node/releases/download/${cardano_node_version}/cardano-node-${cardano_node_version}-linux.tar.gz
+    tar -xf cardano-node-${cardano_node_version}-linux.tar.gz
+fi
 
 # Move only the needed files to the bin directory
 if [ -d "./bin" ]; then
-  mv ./bin/cardano-node ./bin/cardano-cli ./bin/*.dylib bin/ 2>/dev/null || true
+    if [ "$os_type" = "Darwin" ]; then
+        mv ./bin/cardano-node ./bin/cardano-cli ./bin/*.dylib bin/ 2>/dev/null || true
+    elif [ "$os_type" = "Linux" ]; then
+        mv ./bin/cardano-node ./bin/cardano-cli ./bin/*.so bin/ 2>/dev/null || true
+    fi
 else
-  # Find and move binaries if they exist in a different location
-  find . -name 'cardano-node' -o -name 'cardano-cli' -o -name '*.dylib' | xargs -I{} mv {} bin/ 2>/dev/null || true
+    # Find and move binaries if they exist in a different location
+    if [ "$os_type" = "Darwin" ]; then
+        find . -name 'cardano-node' -o -name 'cardano-cli' -o -name '*.dylib' | xargs -I{} mv {} bin/ 2>/dev/null || true
+    elif [ "$os_type" = "Linux" ]; then
+        find . -name 'cardano-node' -o -name 'cardano-cli' -o -name '*.so' | xargs -I{} mv {} bin/ 2>/dev/null || true
+    fi
 fi
 
 # Handle the preprod files
 if [ -d "./share/preprod" ]; then
-  mkdir -p preprod
-  cp -r ./share/preprod/* preprod/
+    mkdir -p preprod
+    cp -r ./share/preprod/* preprod/
 else
-  # Try to find the preprod directory
-  find . -name 'preprod' -type d | xargs -I{} cp -r {}/* preprod/ 2>/dev/null || true
+    # Try to find the preprod directory
+    find . -name 'preprod' -type d | xargs -I{} cp -r {}/* preprod/ 2>/dev/null || true
 fi
 
 # Clean up extracted files
