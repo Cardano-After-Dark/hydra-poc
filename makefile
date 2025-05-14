@@ -52,3 +52,6 @@ username-credentials:
 
 fund-username:
 	./hydra-mgr.sh fund-username
+
+start-user-node:
+	./hydra-mgr.sh start-user-node

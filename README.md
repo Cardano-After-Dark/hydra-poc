@@ -145,6 +145,13 @@ Look for output showing the UTxOs at each address with their respective balances
 
 ## Setting Up Hydra Nodes
 
+
+TODO: document
+```bash
+make start-user-node
+```
+
+
 Since the Hydra key pairs were generated in the setup script, we can start the Hydra nodes.
 
 Now start the Hydra nodes in separate terminal windows:
@@ -171,6 +178,7 @@ Verify the nodes are running by connecting to their WebSocket APIs:
 websocat ws://127.0.0.1:4001 | jq  # For Alice
 websocat ws://127.0.0.1:4002 | jq  # For Bob
 ```
+
 
 You should see connection messages and a "Greetings" message with "headStatus": "Idle".
 
@@ -285,7 +293,7 @@ This finalizes the head closure:
 Verify the final balances on layer 1:
 
 ```bash
-./scripts/utils/query-node-funds.sh
+make query-demo-wallets
 ```
 
 ## Cleaning Up

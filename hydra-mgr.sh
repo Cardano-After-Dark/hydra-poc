@@ -64,6 +64,9 @@ case "$1" in
     fund-username)
         ./scripts/transactions/fund-username.sh
         ;;
+    start-user-node)
+        ./scripts/core/start-user-node.sh
+        ;;
     *)
         echo "Hydra Node Manager"
         echo ""
