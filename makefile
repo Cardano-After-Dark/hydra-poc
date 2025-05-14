@@ -49,3 +49,6 @@ query-demo-wallets:
 
 username-credentials:
 	./hydra-mgr.sh username-credentials
+
+fund-username:
+	./hydra-mgr.sh fund-username

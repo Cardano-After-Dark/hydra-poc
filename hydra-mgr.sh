@@ -61,6 +61,9 @@ case "$1" in
     username-credentials)
         ./scripts/setup/node/username-credentials.sh
         ;;
+    fund-username)
+        ./scripts/transactions/fund-username.sh
+        ;;
     *)
         echo "Hydra Node Manager"
         echo ""
