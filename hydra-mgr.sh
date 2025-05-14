@@ -67,6 +67,12 @@ case "$1" in
     start-user-node)
         ./scripts/core/start-user-node.sh
         ;;
+    demo-credentials)
+        ./scripts/setup/node/demo-credentials.sh
+        ;;
+    demo-hydra-keys)
+        ./scripts/setup/node/demo-hydra-keys.sh
+        ;;
     *)
         echo "Hydra Node Manager"
         echo ""
