@@ -34,6 +34,9 @@ case "$1" in
     commit-funds-demo)
         ./scripts/transactions/commit-funds-demo.sh
         ;;
+    commit-funds-username)
+        ./scripts/transactions/commit-funds-username.sh
+        ;;
     scan)
         ./scripts/core/scan-head-metadata.sh
         ;;

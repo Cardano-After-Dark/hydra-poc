@@ -64,3 +64,6 @@ fund-demo:
 
 commit-funds-demo:
 	./hydra-mgr.sh commit-funds-demo
+
+commit-funds-username:
+	./hydra-mgr.sh commit-funds-username
