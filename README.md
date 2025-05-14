@@ -202,7 +202,7 @@ You'll see a `HeadIsInitializing` message in the WebSocket output.
 Next, commit funds to the head:
 
 ```bash
-./scripts/transactions/commit-funds.sh
+make commit-funds-demo
 ```
 
 This script:
@@ -231,9 +231,9 @@ In the first terminal, start the TUI interface:
 pnpm run tui
 ```
 
-In the second terminal, start the transaction stream viewer:
+In the second terminal, start message receiving TUI:
 ```bash
-pnpm run stream
+pnpm run receiver
 ```
 
 ### Using the Message Interface
