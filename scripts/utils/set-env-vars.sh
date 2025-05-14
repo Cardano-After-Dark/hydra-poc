@@ -36,7 +36,14 @@ fi
 cp "${PROJECT_ROOT}/.env.example" "${PROJECT_ROOT}/.env"
 
 # Replace path/to/project/ with actual project root
-sed -i '' "s|path/to/project/|${PROJECT_ROOT}/|g" "${PROJECT_ROOT}/.env"
+# Handle different sed syntax for macOS and Linux
+if [ "$(uname -s)" = "Darwin" ]; then
+    # macOS version of sed requires an empty string after -i
+    sed -i '' "s|path/to/project/|${PROJECT_ROOT}/|g" "${PROJECT_ROOT}/.env"
+else
+    # Linux version of sed doesn't need the empty string
+    sed -i "s|path/to/project/|${PROJECT_ROOT}/|g" "${PROJECT_ROOT}/.env"
+fi
 
 # Source the .env file
 source "${PROJECT_ROOT}/.env"

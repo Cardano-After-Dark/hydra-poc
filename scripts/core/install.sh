@@ -32,11 +32,9 @@ elif [ "$os_type" = "Linux" ]; then
         # Install websocat from binary release since it's not in default repositories
         if ! command -v websocat &>/dev/null; then
             echo "Installing websocat from binary release..."
-            curl -L -o /tmp/websocat.tar.gz https://github.com/vi/websocat/releases/download/v1.11.0/websocat.x86_64-unknown-linux-musl.tar.gz
-            tar -xf /tmp/websocat.tar.gz -C /tmp
-            sudo mv /tmp/websocat /usr/local/bin/
+            # Download the latest release directly as a binary instead of tar.gz
+            sudo curl -L -o /usr/local/bin/websocat https://github.com/vi/websocat/releases/latest/download/websocat.x86_64-unknown-linux-musl
             sudo chmod +x /usr/local/bin/websocat
-            rm -f /tmp/websocat.tar.gz
         fi
     else
         echo "Error: This script only supports Ubuntu-based Linux distributions with apt-get"
@@ -47,7 +45,7 @@ else
     exit 1
 fi
 
-hydra_version=0.21.0
+hydra_version=0.20.0
 cardano_node_version=10.1.2
 
 # Detect architecture
