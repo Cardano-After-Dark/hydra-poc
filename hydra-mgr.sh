@@ -47,6 +47,9 @@ case "$1" in
         ./scripts/utils/query-username-wallets.sh
         ;;
     refund-funding-wallet)
+        ./scripts/utils/refund-funding-wallet.sh
+        ;;
+    refund-funding-wallet-username)
         ./scripts/utils/refund-funding-wallet-username.sh
         ;;
     query-tip)
@@ -54,6 +57,9 @@ case "$1" in
         ;;
     query-demo-wallets)
         ./scripts/utils/query-demo-wallets.sh
+        ;;
+    username-credentials)
+        ./scripts/setup/node/username-credentials.sh
         ;;
     *)
         echo "Hydra Node Manager"
