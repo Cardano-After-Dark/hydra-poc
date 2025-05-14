@@ -37,3 +37,9 @@ query-username-wallets:
 
 refund-funding-wallet:
 	./hydra-mgr.sh refund-funding-wallet
+
+query-tip:
+	./hydra-mgr.sh query-tip
+
+query-demo-wallets:
+	./hydra-mgr.sh query-demo-wallets
