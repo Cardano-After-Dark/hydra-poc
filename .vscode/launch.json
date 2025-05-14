@@ -7,11 +7,8 @@
       "name": "Debug Metadata Test",
       "skipFiles": ["<node_internals>/**"],
       "runtimeExecutor": "node",
-      "runtimeArgs": [
-        "--import", "tsx",
-        "--experimental-specifier-resolution=node",
-        "${workspaceFolder}/tests/metadata.ts"
-      ],
+      "program": "${workspaceFolder}/tests/metadata.ts",
+      "runtimeArgs": ["--import", "tsx"],
       "outFiles": ["${workspaceFolder}/**/*.js"],
       "console": "integratedTerminal",
       "sourceMaps": true,
@@ -20,22 +17,16 @@
         "!**/node_modules/**"
       ],
       "smartStep": true,
-      "stopOnEntry": false,
-      "env": {
-        "NODE_OPTIONS": "--experimental-specifier-resolution=node"
-      }
+      "stopOnEntry": false
     },
     {
       "type": "node",
       "request": "launch",
-      "name": "Debug TUI",
+      "name": "Debug Sender TUI",
       "skipFiles": ["<node_internals>/**"],
       "runtimeExecutor": "node",
-      "runtimeArgs": [
-        "--import", "tsx",
-        "--experimental-specifier-resolution=node",
-        "${workspaceFolder}/src/tui.ts"
-      ],
+      "program": "${workspaceFolder}/src/ui/tui.ts",
+      "runtimeArgs": ["--import", "tsx"],
       "outFiles": ["${workspaceFolder}/**/*.js"],
       "console": "integratedTerminal",
       "sourceMaps": true,
@@ -44,10 +35,90 @@
         "!**/node_modules/**"
       ],
       "smartStep": true,
-      "stopOnEntry": false,
-      "env": {
-        "NODE_OPTIONS": "--experimental-specifier-resolution=node"
-      }
+      "stopOnEntry": false
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Receiver TUI",
+      "skipFiles": ["<node_internals>/**"],
+      "runtimeExecutor": "node",
+      "program": "${workspaceFolder}/src/ui/receiver_tui.ts",
+      "runtimeArgs": ["--import", "tsx"],
+      "outFiles": ["${workspaceFolder}/**/*.js"],
+      "console": "integratedTerminal",
+      "sourceMaps": true,
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ],
+      "smartStep": true,
+      "stopOnEntry": false
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Hydra Chat",
+      "skipFiles": ["<node_internals>/**"],
+      "runtimeExecutor": "node",
+      "program": "${workspaceFolder}/src/ui/hydra_chat.ts",
+      "runtimeArgs": ["--import", "tsx"],
+      "outFiles": ["${workspaceFolder}/**/*.js"],
+      "console": "integratedTerminal",
+      "sourceMaps": true,
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ],
+      "smartStep": true,
+      "stopOnEntry": false
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Integrated Hydra Chat",
+      "skipFiles": ["<node_internals>/**"],
+      "runtimeExecutor": "node",
+      "program": "${workspaceFolder}/src/ui/hydra_chat_debug.ts",
+      "runtimeArgs": ["--import", "tsx"],
+      "outFiles": ["${workspaceFolder}/**/*.js"],
+      "console": "integratedTerminal",
+      "sourceMaps": true,
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ],
+      "smartStep": true,
+      "stopOnEntry": false
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Direct Debug with TSX",
+      "skipFiles": ["<node_internals>/**"],
+      "runtimeExecutor": "${workspaceFolder}/node_modules/.bin/tsx",
+      "program": "${workspaceFolder}/src/ui/hydra_chat_debug.ts",
+      "args": ["--inspect-brk"],
+      "console": "integratedTerminal",
+      "sourceMaps": true
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Test Script",
+      "skipFiles": ["<node_internals>/**"],
+      "runtimeExecutor": "node",
+      "program": "${workspaceFolder}/src/ui/debug_test.ts",
+      "runtimeArgs": ["--import", "tsx"],
+      "outFiles": ["${workspaceFolder}/**/*.js"],
+      "console": "integratedTerminal",
+      "sourceMaps": true,
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ],
+      "smartStep": true,
+      "stopOnEntry": false
     }
   ]
 } 

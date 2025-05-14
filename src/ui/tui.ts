@@ -186,7 +186,7 @@ async function promptForUsername(): Promise<string> {
   });
 }
 
-async function main() {
+export async function main() {
   // Ask for username before starting the TUI
   username = await promptForUsername();
   
@@ -236,7 +236,11 @@ async function main() {
   });
 }
 
-main().catch(error => {
-  console.error('Fatal error:', error);
-  process.exit(1);
-}); 
+// Run the main function if this file is executed directly
+// Using ES module approach
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch(error => {
+    console.error('Fatal error:', error);
+    process.exit(1);
+  });
+} 
