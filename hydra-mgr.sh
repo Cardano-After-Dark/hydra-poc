@@ -40,6 +40,15 @@ case "$1" in
     env)
         ./scripts/utils/set-env-vars.sh
         ;;
+    query-funding-wallet)
+        ./scripts/utils/query-funding-wallet.sh
+        ;;
+    query-username-wallets)
+        ./scripts/utils/query-username-wallets.sh
+        ;;
+    refund-funding-wallet)
+        ./scripts/utils/refund-funding-wallet-username.sh
+        ;;
     *)
         echo "Hydra Node Manager"
         echo ""

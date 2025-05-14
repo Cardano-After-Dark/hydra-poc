@@ -28,3 +28,12 @@ scan:
 
 env:
 	./hydra-mgr.sh env
+
+query-funding-wallet:
+	./hydra-mgr.sh query-funding-wallet
+
+query-username-wallets:
+	./hydra-mgr.sh query-username-wallets
+
+refund-funding-wallet:
+	./hydra-mgr.sh refund-funding-wallet
