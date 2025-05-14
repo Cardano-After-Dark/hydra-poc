@@ -76,27 +76,23 @@ case "$1" in
     fund-demo)
         ./scripts/transactions/fund-demo.sh
         ;;
+    setup-funding-wallet)
+        ./scripts/setup/funding/setup-funding-credentials.sh
+        ;;
     *)
         echo "Hydra Node Manager"
         echo ""
-        echo "Available commands:"
-        echo "  install       - Install required dependencies"
-        echo "  cardano-node  - Set up and start Cardano node"
-        echo "  setup-funds   - Set up funding wallet and distribute funds"
-        echo "  alice-node    - Start Alice's Hydra node"
-        echo "  bob-node      - Start Bob's Hydra node"
-        echo "  init-head     - Initialize Hydra Head (run after nodes are started)"
-        echo "  scan          - Monitor Hydra head for transactions"
-        echo "  env           - Set up environment variables"
+        echo "Setup Sequence:"
+        echo "  install                 - Install required dependencies"
+        echo "  cardano-node            - Set up and start Cardano node"
+        echo "  setup-funding-wallet    - Set up funding wallet and distribute funds"
+        echo "  demo-credentials        - Set up demo credentials"
+        echo "  demo-hydra-keys         - Set up demo Hydra keys"
+        echo "  fund-demo               - Fund demo wallets"
+        echo "  alice-node              - Start Alice's Hydra node"
+        echo "  bob-node                - Start Bob's Hydra node"
         echo ""
-        echo "Example sequence:"
-        echo "  install"
-        echo "  env"
-        echo "  cardano-node"
-        echo "  setup-funds"
-        echo "  Terminal 1: alice-node"
-        echo "  Terminal 2: bob-node"
-        echo "  Terminal 3: init-head"
-        echo "  Terminal 4: scan"
+        echo "Available commands:"
+        echo "  TODO"
         ;;
 esac 

@@ -11,8 +11,8 @@ install:
 cardano-node:
 	./hydra-mgr.sh cardano-node
 
-setup-funds:
-	./hydra-mgr.sh setup-funds
+setup-funding-wallet:
+	./hydra-mgr.sh setup-funding-wallet
 
 alice-node:
 	./hydra-mgr.sh alice-node

@@ -1,22 +1,22 @@
 #!/bin/bash
 
-# Check if environment variables are already set
-if [[ -z "${PROJECT_ROOT}" ]]; then
-    if [[ -f ".env" ]]; then
-        echo "Found .env file in current directory"
-        set -a  # automatically export all variables
-        source .env
-        set +a
-    elif [[ -f "../.env" ]]; then
-        echo "Found .env file in parent directory"
-        set -a  # automatically export all variables
-        source ../.env
-        set +a
-    else
-        echo "Error: .env file not found. Please run scripts/utils/set-env-vars.sh first"
-        exit 1
-    fi
-fi
+# # Check if environment variables are already set
+# if [[ -z "${PROJECT_ROOT}" ]]; then
+#     if [[ -f ".env" ]]; then
+#         echo "Found .env file in current directory"
+#         set -a  # automatically export all variables
+#         source .env
+#         set +a
+#     elif [[ -f "../.env" ]]; then
+#         echo "Found .env file in parent directory"
+#         set -a  # automatically export all variables
+#         source ../.env
+#         set +a
+#     else
+#         echo "Error: .env file not found. Please run scripts/utils/set-env-vars.sh first"
+#         exit 1
+#     fi
+# fi
 
 wallet_name=funding-wallet
 
@@ -44,4 +44,5 @@ else
     echo ""
     echo "Request funding from the Cardano Testnet Faucet:"
     echo $(cat ${CREDENTIALS_DIR}/funding/$wallet_name.addr)
+    echo "Faucet: https://docs.cardano.org/cardano-testnets/tools/faucet/"
 fi

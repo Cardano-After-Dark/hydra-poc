@@ -2,8 +2,14 @@
 
 wallet_name=funding-wallet
 
+# Ensure all required directories exist
 if [ ! -d "${CREDENTIALS_DIR}/funding" ]; then
     mkdir -p ${CREDENTIALS_DIR}/funding
+fi
+
+if [ ! -d "${TXS_DIR}" ]; then
+    mkdir -p ${TXS_DIR}
+    echo "Created transaction directory: ${TXS_DIR}"
 fi
 
 # Check and create ${USERNAME}'s funds credentials
@@ -64,14 +70,25 @@ done
 
 echo "Sufficient funds detected in funding wallet!"
 
+# Create a temporary file for UTXO info
+echo "Getting funding wallet UTxO state..."
+UTXO_FILE="${TXS_DIR}/funding-wallet-utxo.json"
+
 # Get funding wallet UTxO state
 cardano-cli query utxo \
     --address $(cat ${CREDENTIALS_DIR}/funding/funding-wallet.addr) \
-    --out-file ${TXS_DIR}/funding-wallet-utxo.json
+    --out-file ${UTXO_FILE}
 
+# Verify that the file exists before proceeding
+if [ ! -f "${UTXO_FILE}" ]; then
+    echo "Error: Failed to create UTXO file at ${UTXO_FILE}"
+    exit 1
+fi
+
+echo "Building transaction..."
 # Build a Tx to send funds from `funding-wallet` to the others who need them
 cardano-cli conway transaction build \
-    $(cat ${TXS_DIR}/funding-wallet-utxo.json | jq -j 'to_entries[].key | "--tx-in ", ., " "') \
+    $(cat ${UTXO_FILE} | jq -j 'to_entries[].key | "--tx-in ", ., " "') \
     --change-address $(cat ${CREDENTIALS_DIR}/funding/funding-wallet.addr) \
     --tx-out $(cat ${CREDENTIALS_DIR}/alice/alice-funds.addr)+1000000000 \
     --tx-out $(cat ${CREDENTIALS_DIR}/alice/alice-node.addr)+1000000000 \
@@ -79,9 +96,11 @@ cardano-cli conway transaction build \
     --tx-out $(cat ${CREDENTIALS_DIR}/bob/bob-node.addr)+1000000000 \
     --out-file ${TXS_DIR}/funding-tx.json
 
+echo "Signing transaction..."
 cardano-cli conway transaction sign \
   --tx-file ${TXS_DIR}/funding-tx.json \
   --signing-key-file ${CREDENTIALS_DIR}/funding/funding-wallet.sk \
   --out-file ${TXS_DIR}/funding-tx-signed.json
 
+echo "Submitting transaction..."
 cardano-cli conway transaction submit --tx-file ${TXS_DIR}/funding-tx-signed.json

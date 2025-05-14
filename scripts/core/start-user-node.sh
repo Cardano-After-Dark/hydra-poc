@@ -31,18 +31,30 @@ if [ -f "${PROJECT_ROOT}/.env" ]; then
     fi
 fi
 
+# Detect OS type
+os_type=$(uname -s)
 
-
-
-# Check if libiconv is already installed
-if ! brew list libiconv &>/dev/null; then
-    echo "Installing libiconv..."
-    brew install libiconv
-fi
-
-# Check if symlink already exists before creating it
-if [ ! -L "${NODE_DIR}/bin/libiconv.2.dylib" ]; then
-    ln -s /opt/homebrew/opt/libiconv/lib/libiconv.2.dylib ${NODE_DIR}/bin/libiconv.2.dylib
+if [ "$os_type" = "Darwin" ]; then
+    # macOS: Install and link libiconv via brew
+    if ! brew list libiconv &>/dev/null; then
+        echo "Installing libiconv via brew..."
+        brew install libiconv
+    fi
+    
+    # Check if symlink already exists before creating it
+    if [ ! -L "${NODE_DIR}/bin/libiconv.2.dylib" ]; then
+        ln -s /opt/homebrew/opt/libiconv/lib/libiconv.2.dylib ${NODE_DIR}/bin/libiconv.2.dylib
+    fi
+elif [ "$os_type" = "Linux" ]; then
+    # Linux: Install libiconv via apt-get
+    if ! dpkg -l libc6 &>/dev/null; then
+        echo "Installing libc6 (includes iconv)..."
+        sudo apt-get update
+        sudo apt-get install -y libc6
+    fi
+    
+    # On Linux, libiconv functionality is typically provided by glibc (libc6)
+    # and is automatically available to applications, so no symlink is needed
 fi
 
 # Check if the peer node is reachable
@@ -51,6 +63,18 @@ if [ $? -ne 0 ]; then
     echo "Error: Peer node at ${PEER_NODE_IP}:${PEER_NODE_PORT} is not reachable."
     exit 1
 fi
+
+# Ensure required directories exist with explicit checks
+if [ ! -d "${PARAMS_DIR}" ]; then
+    echo "Creating parameters directory: ${PARAMS_DIR}"
+    mkdir -p "${PARAMS_DIR}"
+fi
+
+if [ ! -d "${PERSISTENCE_DIR}/persistence-${USERNAME}" ]; then
+    echo "Creating persistence directory: ${PERSISTENCE_DIR}/persistence-${USERNAME}"
+    mkdir -p "${PERSISTENCE_DIR}/persistence-${USERNAME}"
+fi
+
 
 # Adjusts the fees and pricing mechanisms to zero, ensuring that transactions within the Hydra head incur no costs.
 cardano-cli query protocol-parameters \

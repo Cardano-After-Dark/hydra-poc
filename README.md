@@ -123,7 +123,7 @@ Wait until `syncProgress` reaches "100.00" before proceeding.
 Generate cryptographic credentials for preprod funding wallet:
 
 ```bash
-make setup-funds
+make setup-funding-wallet
 ```
 
 This will create a Cardano key pair for the funding wallet and generate an address. **Preprod tADA** can be obtained from the [Cardano Testnet Faucet](https://docs.cardano.org/cardano-testnets/tools/faucet/) with this address as the recipient.
@@ -148,9 +148,16 @@ Look for output showing the UTxOs at each address with their respective balances
 
 TODO: document
 ```bash
-make start-user-node
+make demo-credentials
 ```
 
+```bash
+make demo-hydra-keys
+```
+
+```bash
+make fund-demo
+```
 
 Since the Hydra key pairs were generated in the setup script, we can start the Hydra nodes.
 
