@@ -68,7 +68,9 @@ function displayScreen() {
   const messageContent = receivedMessages.length === 0 
     ? ['No messages received yet. Waiting for incoming messages...']
     : receivedMessages.map(msg => {
-        return `${msg.timestamp} From: ${msg.sender.substring(0, 10)}... | ${msg.text}`;
+        // Extract just the last 6 characters of the sender address
+        const senderDisplay = msg.sender.slice(-6);
+        return `${msg.timestamp} From: ${senderDisplay} | ${msg.text}`;
       });
   
   const messageBox = drawBox(width, height - 8, `Message Receiver (${username})`, messageContent);
