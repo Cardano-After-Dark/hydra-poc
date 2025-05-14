@@ -83,6 +83,7 @@ case "$1" in
         echo "Hydra Node Manager"
         echo ""
         echo "Setup Sequence:"
+        echo "  env                     - Set environment variables"
         echo "  install                 - Install required dependencies"
         echo "  cardano-node            - Set up and start Cardano node"
         echo "  setup-funding-wallet    - Set up funding wallet and distribute funds"
