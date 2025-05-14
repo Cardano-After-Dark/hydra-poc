@@ -1,21 +1,5 @@
 #!/bin/bash
 
-# Source environment variables with debug output
-if [[ -f ".env" ]]; then
-    echo "Found .env file in current directory"
-    set -a  # automatically export all variables
-    source .env
-    set +a
-elif [[ -f "../.env" ]]; then
-    echo "Found .env file in parent directory"
-    set -a  # automatically export all variables
-    source ../.env
-    set +a
-else
-    echo "Error: .env file not found. Please run scripts/utils/set-env-vars.sh first"
-    exit 1
-fi
-
 # Check if the database directory exists
 
 if [ ! -d "${NODE_DIR}/${NETWORK}/db" ]; then
@@ -23,6 +7,12 @@ if [ ! -d "${NODE_DIR}/${NETWORK}/db" ]; then
     cd "${NODE_DIR}/${NETWORK}" && mithril-client cardano-db download latest
 else
     echo "Database already exists, skipping download..."
+    read -p "Do you want remove the database? (y/n): " REMOVE_DB
+    if [[ "$REMOVE_DB" =~ ^[Yy]$ ]]; then
+        rm -rf ${NODE_DIR}/${NETWORK}/db
+        echo "Database removed"
+        cd "${NODE_DIR}/${NETWORK}" && mithril-client cardano-db download latest
+    fi
 fi
 
 # Start the Cardano node

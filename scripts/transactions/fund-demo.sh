@@ -36,6 +36,10 @@ check_funding_wallet() {
     echo "Current balance: $BALANCE lovelace"
     # We need at least 4000000000 lovelace (4000 ADA) plus fees
     if [ "$BALANCE" -lt 4100000000 ]; then
+            echo ""
+            echo "Request funding from the Cardano Testnet Faucet to:"
+            echo $(cat ${CREDENTIALS_DIR}/funding/$wallet_name.addr)
+            echo "Faucet: https://docs.cardano.org/cardano-testnets/tools/faucet/"
         return 1
     fi
     return 0

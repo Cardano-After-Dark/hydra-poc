@@ -64,3 +64,6 @@ demo-hydra-keys:
 
 fund-demo:
 	./hydra-mgr.sh fund-demo
+
+commit-funds-demo:
+	./hydra-mgr.sh commit-funds-demo
