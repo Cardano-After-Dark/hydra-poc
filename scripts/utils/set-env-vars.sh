@@ -23,6 +23,15 @@ if [ ! -f "${PROJECT_ROOT}/.env.example" ]; then
     exit 1
 fi
 
+# Check if .env already exists and ask for confirmation before overwriting
+if [ -f "${PROJECT_ROOT}/.env" ]; then
+    read -p "An .env file already exists. Do you want to overwrite it? (y/n): " confirm
+    if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+        echo "Operation cancelled. Existing .env file retained."
+        exit 0
+    fi
+fi
+
 # Create .env file from .env.example
 cp "${PROJECT_ROOT}/.env.example" "${PROJECT_ROOT}/.env"
 
