@@ -61,3 +61,6 @@ demo-credentials:
 
 demo-hydra-keys:
 	./hydra-mgr.sh demo-hydra-keys
+
+fund-demo:
+	./hydra-mgr.sh fund-demo

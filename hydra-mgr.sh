@@ -73,6 +73,9 @@ case "$1" in
     demo-hydra-keys)
         ./scripts/setup/node/demo-hydra-keys.sh
         ;;
+    fund-demo)
+        ./scripts/transactions/fund-demo.sh
+        ;;
     *)
         echo "Hydra Node Manager"
         echo ""
