@@ -2,6 +2,11 @@
 
 read -p "Enter username: " USERNAME
 
+# Check if ${USERNAME} exists
+if [ ! -d "${CREDENTIALS_DIR}/${USERNAME}" ]; then
+    echo "Error: ${USERNAME} does not exist."
+    exit 1
+fi
 
 # Check if there's a .env file in the project directory and compare username
 if [ -f "${PROJECT_ROOT}/.env" ]; then

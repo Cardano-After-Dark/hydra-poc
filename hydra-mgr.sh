@@ -46,8 +46,8 @@ case "$1" in
     query-username-wallets)
         ./scripts/utils/query-username-wallets.sh
         ;;
-    refund-funding-wallet)
-        ./scripts/utils/refund-funding-wallet.sh
+    refund-funding-wallet-demo)
+        ./scripts/utils/refund-funding-wallet-demo.sh
         ;;
     refund-funding-wallet-username)
         ./scripts/utils/refund-funding-wallet-username.sh

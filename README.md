@@ -293,13 +293,19 @@ Verify the final balances on layer 1:
 Now that the testing sequence is complete, return any unused test ada to the funding wallet to be used again later:
 
 ```bash
-./scripts/utils/refund-funding-wallet.sh
+make refund-funding-wallet-demo
 ```
 
 This script:
 1. Gathers all remaining funds from Alice and Bob addresses
 2. Creates a transaction returning them to the testnet faucet
 3. Signs and submits the transaction
+
+To refund from your username's wallets, run this command:
+
+```bash
+make refund-funding-wallet-username
+```
 
 ## Advanced Configuration
 
