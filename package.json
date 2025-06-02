@@ -39,6 +39,7 @@
     "@hyperionbt/helios": "^0.16.7",
     "blessed": "^0.1.81",
     "dotenv": "^16.4.5",
+    "http-proxy": "^1.18.1",
     "ink": "^4.4.1",
     "keypress": "^0.2.1",
     "node-pty": "^1.0.0",
