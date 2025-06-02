@@ -82,6 +82,9 @@ case "$1" in
     setup-funding-wallet)
         ./scripts/setup/funding/setup-funding-credentials.sh
         ;;
+    send-tx)
+        ./scripts/transactions/send-tx.sh
+        ;;
     *)
         echo "Hydra Node Manager"
         echo ""
