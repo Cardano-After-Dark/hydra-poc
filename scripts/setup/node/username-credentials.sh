@@ -37,19 +37,41 @@ fi
 
 # Check if there's a .env file in the project directory and compare username
 if [ -f "${PROJECT_ROOT}/.env" ]; then
-    # Extract existing username from .env file
-    EXISTING_USERNAME=$(grep "^USERNAME=" "${PROJECT_ROOT}/.env" | cut -d '=' -f2)
-    
-    # Remove quotes if present
-    EXISTING_USERNAME="${EXISTING_USERNAME//\"/}"
-    EXISTING_USERNAME="${EXISTING_USERNAME//\'/}"
-    
-    # Compare with entered username
-    if [ -n "$EXISTING_USERNAME" ] && [ "$EXISTING_USERNAME" != "$USERNAME" ]; then
-        echo "Found different username in .env file: $EXISTING_USERNAME"
-        read -p "Would you like to update the username in .env to $USERNAME? (y/n): " UPDATE_CHOICE
+    # Check if USERNAME line exists
+    if ! grep -q "^USERNAME=" "${PROJECT_ROOT}/.env"; then
+        # Add newline and USERNAME line if it doesn't exist
+        echo "" >> "${PROJECT_ROOT}/.env"
+        echo "USERNAME=$USERNAME" >> "${PROJECT_ROOT}/.env"
+        echo "Added username to .env file"
+    else
+        # Extract existing username from .env file
+        EXISTING_USERNAME=$(grep "^USERNAME=" "${PROJECT_ROOT}/.env" | cut -d '=' -f2)
         
-        if [[ "$UPDATE_CHOICE" =~ ^[Yy]$ ]]; then
+        # Remove quotes if present
+        EXISTING_USERNAME="${EXISTING_USERNAME//\"/}"
+        EXISTING_USERNAME="${EXISTING_USERNAME//\'/}"
+        
+        # Compare with entered username
+        if [ -n "$EXISTING_USERNAME" ] && [ "$EXISTING_USERNAME" != "$USERNAME" ]; then
+            echo "Found different username in .env file: $EXISTING_USERNAME"
+            read -p "Would you like to update the username in .env to $USERNAME? (y/n): " UPDATE_CHOICE
+            
+            if [[ "$UPDATE_CHOICE" =~ ^[Yy]$ ]]; then
+                # Update the username in the .env file
+                if [[ "$OSTYPE" == "darwin"* ]]; then
+                    # macOS requires an empty string for -i
+                    sed -i '' "s/^USERNAME=.*$/USERNAME=$USERNAME/" "${PROJECT_ROOT}/.env"
+                else
+                    # Linux version
+                    sed -i "s/^USERNAME=.*$/USERNAME=$USERNAME/" "${PROJECT_ROOT}/.env"
+                fi
+                echo "Username updated in .env file"
+            else
+                echo "Keeping existing username ($EXISTING_USERNAME) in .env file"
+                # Optionally update the USERNAME variable for the rest of this script
+                USERNAME="$EXISTING_USERNAME"
+            fi
+        else
             # Update the username in the .env file
             if [[ "$OSTYPE" == "darwin"* ]]; then
                 # macOS requires an empty string for -i
@@ -59,10 +81,6 @@ if [ -f "${PROJECT_ROOT}/.env" ]; then
                 sed -i "s/^USERNAME=.*$/USERNAME=$USERNAME/" "${PROJECT_ROOT}/.env"
             fi
             echo "Username updated in .env file"
-        else
-            echo "Keeping existing username ($EXISTING_USERNAME) in .env file"
-            # Optionally update the USERNAME variable for the rest of this script
-            USERNAME="$EXISTING_USERNAME"
         fi
     fi
 fi
