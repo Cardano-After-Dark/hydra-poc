@@ -1,5 +1,6 @@
 import { Logger } from '../utils/logger';
 import { getConfig } from '../utils/config';
+import WebSocket from 'ws';
 
 const logger = Logger.getInstance();
 
@@ -34,7 +35,8 @@ export class HydraStream {
 
     this.ws.onmessage = (event) => {
       try {
-        const message = JSON.parse(event.data);
+        const data = typeof event.data === 'string' ? event.data : event.data.toString();
+        const message = JSON.parse(data);
         this.messageCallback(message);
       } catch (error) {
         logger.error("Error parsing WebSocket message:", error);

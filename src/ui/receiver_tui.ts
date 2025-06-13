@@ -112,7 +112,7 @@ function extractMetadata(txValue: any): Record<string, any> | null {
     
     return null;
   } catch (error) {
-    logger.error('Error extracting metadata:', error);
+    logger.error('Error extracting metadata:', error as any);
     return null;
   }
 }
@@ -259,7 +259,7 @@ function onMessageReceived(message: any) {
         }
       }
     } catch (error) {
-      logger.error('Error processing received message:', error);
+      logger.error('Error processing received message:', error as any);
     }
   } else if (message.tag === 'HeadIsOpen') {
     connectionStatus = 'Connected - Head Open';
@@ -345,7 +345,7 @@ export async function main() {
       process.exit(0);
     });
   } catch (error) {
-    logger.error('Fatal error:', error);
+    logger.error('Fatal error:', error as any);
     process.exit(1);
   }
 }
