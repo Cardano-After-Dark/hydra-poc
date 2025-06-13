@@ -35,6 +35,13 @@ else
       --out-file ${CREDENTIALS_DIR}/${USERNAME}/${USERNAME}-funds.addr
 fi
 
+# Check and create ${USERNAME}'s Hydra keys
+if [ ! -f "${CREDENTIALS_DIR}/${USERNAME}/${USERNAME}-hydra.sk" ]; then
+    hydra-node gen-hydra-key --output-file ${CREDENTIALS_DIR}/${USERNAME}/${USERNAME}-hydra
+else
+    echo "${USERNAME}'s Hydra keys already exist, skipping generation"
+fi
+
 # Check if there's a .env file in the project directory and compare username
 if [ -f "${PROJECT_ROOT}/.env" ]; then
     # Check if USERNAME line exists

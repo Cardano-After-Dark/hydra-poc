@@ -57,13 +57,6 @@ elif [ "$os_type" = "Linux" ]; then
     # and is automatically available to applications, so no symlink is needed
 fi
 
-# Check if the peer node is reachable
-nc -zv ${PEER_NODE_IP} ${PEER_NODE_PORT}
-if [ $? -ne 0 ]; then
-    echo "Error: Peer node at ${PEER_NODE_IP}:${PEER_NODE_PORT} is not reachable."
-    exit 1
-fi
-
 # Ensure required directories exist with explicit checks
 if [ ! -d "${PARAMS_DIR}" ]; then
     echo "Creating parameters directory: ${PARAMS_DIR}"
@@ -79,8 +72,6 @@ fi
 # Adjusts the fees and pricing mechanisms to zero, ensuring that transactions within the Hydra head incur no costs.
 cardano-cli query protocol-parameters \
   | jq '.txFeeFixed = 0 |.txFeePerByte = 0 | .executionUnitPrices.priceMemory = 0 | .executionUnitPrices.priceSteps = 0' > ${PARAMS_DIR}/protocol-parameters.json
-
-HYDRA_SCRIPTS_TX_ID=$(curl https://raw.githubusercontent.com/cardano-scaling/hydra/master/networks.json | jq -r ".preprod.\"${HYDRA_VERSION}\"")
 
 hydra-node \
   --node-id "${USERNAME}-node" \
