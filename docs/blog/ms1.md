@@ -135,6 +135,26 @@ Hydra's instant finality transforms the gaming experience by providing immediate
 
 This instant finality eliminates the traditional blockchain gaming problem of waiting for block confirmations, creating a user experience comparable to traditional online gaming.
 
+### Transaction Hash Visibility
+
+An important technical consideration when working with Hydra is understanding the visibility of transaction hashes across different layers of the Cardano ecosystem.
+
+**Layer 2 Transaction Isolation**
+
+All gaming interactions and transactions that occur within the Hydra head exist exclusively on the Layer 2 (Hydra) environment. These transactions, including their associated metadata and smart contract interactions, generate transaction hashes that are only visible and verifiable within the Hydra channel itself. When participants send messages, execute game actions, or interact with smart contracts through the Hydra head, the resulting transaction hashes remain confined to the L2 layer.
+
+**Layer 1 Network Invisibility**
+
+These Layer 2 transaction hashes are not visible on the Layer 1 (Cardano preprod or mainnet) network. This is by design—Hydra's efficiency comes from processing transactions off-chain while maintaining the security guarantees of the underlying Cardano network. Only the head initialization, funding commits, and final settlement transactions appear on the Layer 1 blockchain.
+
+**Implications for Gaming Applications**
+
+This architecture has important implications for gaming development:
+
+- **Private Gaming**: Individual game actions remain private to Hydra head participants
+- **Transaction History**: Gaming interactions are lost when the head closes and settles to Layer 1
+- **Settlement Verification**: Final game outcomes are cryptographically verified on the main Cardano blockchain
+
 ## Challenges and Solutions
 
 ### Smart Contract Deployment Complexity
@@ -215,3 +235,9 @@ The smart contract deployment definitely threw us some curveballs. Wrestling wit
 The metadata parsing techniques we developed handle Cardano's 64-byte string limitations without breaking a sweat. The instant finality gives us the responsiveness that gamers expect. The distributed architecture means games can run anywhere without depending on centralized servers. And the minimal ADA consumption model means players can focus on playing instead of worrying about transaction costs.
 
 Milestone 2 is going to be where things get really interesting with limited visibility game states with encryption. And Later, more sophisticated smart contract interactions, and scaling this up to handle serious multiplayer scenarios. The foundation is solid—now we get to build something amazing on top of it.
+
+## References
+
+We created a YouTube playlist "Hydra PoC - Building Interactive dApps on Cardano" containing comprehensive video documentation of our development process, technical demonstrations, and implementation walkthroughs. We plan to pout there more material as the Study Proceeds.
+
+The complete video series is available at: https://www.youtube.com/watch?v=gkpRLnbTXYg&list=PLHuZ5qua4DBCde_Cd6Dhzi51q3Kiqiu9s
