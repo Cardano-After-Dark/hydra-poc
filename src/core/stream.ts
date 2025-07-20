@@ -1,5 +1,6 @@
 import { Logger } from '../utils/logger';
 import { getConfig } from '../utils/config';
+import WebSocket from 'ws';
 
 const logger = Logger.getInstance();
 
@@ -8,15 +9,18 @@ export class HydraStream {
   private url: string;
   private messageCallback: (message: any) => void;
   private errorCallback: (error: Error) => void;
+  private connectedCallback?: () => void;
 
   constructor(
     url: string = "ws://127.0.0.1:4002",
     messageCallback: (message: any) => void,
-    errorCallback: (error: Error) => void
+    errorCallback: (error: Error) => void,
+    connectedCallback?: () => void
   ) {
     this.url = url;
     this.messageCallback = messageCallback;
     this.errorCallback = errorCallback;
+    this.connectedCallback = connectedCallback;
     this.ws = new WebSocket(this.url);
     this.setupWebSocket();
   }
@@ -24,11 +28,15 @@ export class HydraStream {
   private setupWebSocket(): void {
     this.ws.onopen = () => {
       logger.info("WebSocket connection established");
+      if (this.connectedCallback) {
+        this.connectedCallback();
+      }
     };
 
     this.ws.onmessage = (event) => {
       try {
-        const message = JSON.parse(event.data);
+        const data = typeof event.data === 'string' ? event.data : event.data.toString();
+        const message = JSON.parse(data);
         this.messageCallback(message);
       } catch (error) {
         logger.error("Error parsing WebSocket message:", error);
@@ -58,16 +66,31 @@ export class HydraStream {
   }
 }
 
-// Example usage:
+/**
+ * Start a WebSocket stream connection to the Hydra node
+ * @param onMessage Callback for received messages
+ * @param onError Callback for errors
+ * @param onConnected Optional callback for when connection is established
+ * @param customUrl Optional custom WebSocket URL (overrides config)
+ * @returns HydraStream instance
+ */
 export function startStream(
   onMessage: (message: any) => void,
-  onError: (error: Error) => void
+  onError: (error: Error) => void,
+  onConnected?: () => void,
+  customUrl?: string
 ): HydraStream {
   const config = getConfig();
+  // Use custom URL if provided, otherwise use config
+  const url = customUrl || `ws://127.0.0.1:${config.aliceApiPort}`;
+  
+  logger.info(`Starting WebSocket stream at ${url}`);
+  
   const stream = new HydraStream(
-    `ws://127.0.0.1:${config.aliceApiPort}`,
+    url,
     onMessage,
-    onError
+    onError,
+    onConnected
   );
   return stream;
 }

@@ -7,14 +7,15 @@ import * as readline from 'readline';
 import * as fs from 'fs';
 import { chunkMessage, MessageChunk } from '../utils/messageChunker';
 
-// Disable all logging
+// Disable all logging except critical, but save to file
 logger.configure({
-  showTimestamp: false,
+  showTimestamp: true,
   showCallStack: false,
   showCpuTime: false,
   showSection: false,
   showAttributes: false,
-  saveToFile: false
+  saveToFile: true,
+  logFilePath: path.join(process.cwd(), 'logs', `tui-debug-${new Date().toISOString().replace(/[:.]/g, '-')}.log`)
 });
 logger.setLevel(LogLevel.CRITICAL); // Only show critical errors (effectively disabling all logging)
 
@@ -25,8 +26,8 @@ interface Message {
 }
 
 const messages: Message[] = [];
-
 let currentInput = '';
+let username = ''; // Store the username
 
 function updateInput(char: string) {
   if (char === '\x7f' || char === '\b') { // Handle both backspace and delete
@@ -87,7 +88,7 @@ function displayScreen() {
         return `${msg.timestamp} ${statusIcon} ${msg.text}`;
       });
   
-  const messageBox = drawBox(width, height - 4, 'Message History', messageContent);
+  const messageBox = drawBox(width, height - 4, `Message History (${username})`, messageContent);
   messageBox.forEach(line => console.log(line));
   
   // Draw input box
@@ -114,46 +115,49 @@ async function sendMessage(text: string) {
 
   try {
     const config = getConfig();
-    const alice_address = path.join(config.credentialsDir, 'alice/alice-funds.addr');
-    const senderAddress = Address.fromBech32(fs.readFileSync(alice_address, 'utf8').trim());
+    const userAddressFile = path.join(config.credentialsDir, `${username}/${username}-funds.addr`);
+    logger.critical(`User address file: ${userAddressFile}`);
+    const senderAddress = Address.fromBech32(fs.readFileSync(userAddressFile, 'utf8').trim());
+    logger.critical(`Sender address: ${senderAddress.toBech32()}`);
     const recipientAddress = senderAddress.toBech32();
+    logger.critical(`Recipient address: ${recipientAddress}`);
     const amount = 1000000;
 
     // Create metadata with chunks for any message
     const chunks = chunkMessage(text);
     const msgId = Date.now().toString();
 
-    // Send each chunk in sequence
-    for (let i = 0; i < chunks.length; i++) {
-      const metadata = {
-        1337: {
-          msg: chunks[i].text,
-          msg_id: msgId,
-          sender: senderAddress.toBech32(),
-          timestamp: new Date().toISOString(),
-          total_chunks: chunks.length.toString(),
-          chunk_index: i.toString()
-        }
-      };
+    // Create a single metadata object with all chunks
+    const metadata = {
+      1337: {
+        msg_id: msgId,
+        sender: senderAddress.toBech32(),
+        timestamp: new Date().toISOString(),
+        total_chunks: chunks.length.toString(),
+        chunks: chunks.map((chunk, index) => ({
+          text: chunk.text,
+          index: index.toString()
+        }))
+      }
+    };
 
-      // Create transaction builder
-      const builder = await createTransactionFromUtxo(
-        senderAddress,
-        recipientAddress,
-        amount
-      );
+    // Create transaction builder
+    const builder = await createTransactionFromUtxo(
+      senderAddress, 
+      recipientAddress,
+      amount
+    );
 
-      // Add metadata to transaction
-      builder.setMetadata(metadata);
+    // Add metadata to transaction
+    builder.setMetadata(metadata);
 
-      // Build and sign transaction
-      const rawTx = await builder.build();
-      const signingKeyFile = path.join(config.credentialsDir, 'alice/alice-funds.sk');
-      const signedTx = await builder.sign(signingKeyFile);
+    // Build and sign transaction
+    const rawTx = await builder.build();
+    const signingKeyFile = path.join(config.credentialsDir, `${username}/${username}-funds.sk`);
+    const signedTx = await builder.sign(signingKeyFile);
 
-      // Submit transaction to Hydra head
-      await builder.submit(signedTx);
-    }
+    // Submit transaction to Hydra head
+    await builder.submit(signedTx);
 
     // Update message status
     const message = messages.find(msg => msg.timestamp === timestamp);
@@ -172,7 +176,24 @@ async function sendMessage(text: string) {
   }
 }
 
-async function main() {
+async function promptForUsername(): Promise<string> {
+  return new Promise((resolve) => {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+    
+    rl.question('Enter your username (e.g., alice, bob): ', (answer) => {
+      rl.close();
+      resolve(answer.trim() || 'alice'); // Default to 'alice' if empty
+    });
+  });
+}
+
+export async function main() {
+  // Ask for username before starting the TUI
+  username = await promptForUsername();
+  
   // Enable raw mode for precise input control
   process.stdin.setRawMode(true);
   process.stdin.resume();
@@ -219,7 +240,11 @@ async function main() {
   });
 }
 
-main().catch(error => {
-  console.error('Fatal error:', error);
-  process.exit(1);
-}); 
+// Run the main function if this file is executed directly
+// Using ES module approach
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch(error => {
+    console.error('Fatal error:', error);
+    process.exit(1);
+  });
+} 

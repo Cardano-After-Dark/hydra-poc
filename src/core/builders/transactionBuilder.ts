@@ -82,6 +82,16 @@ export class HydraTransactionBuilder {
   }
 
   /**
+   * Get transaction details for debugging
+   */
+  getTransactionDetails(): { inputs: TransactionInput[], outputs: TransactionOutput[] } {
+    return {
+      inputs: this.transaction.inputs,
+      outputs: this.transaction.outputs
+    };
+  }
+
+  /**
    * Build the raw transaction
    * @returns The built raw transaction
    */
@@ -96,12 +106,16 @@ export class HydraTransactionBuilder {
     const txIn = `${firstInput.txHash}#${firstInput.txIndex}`;
     const txOut = `${firstOutput.address}+${firstOutput.amount}`;
     
+    // Handle change output - only if it exists
+    const changeAddress = this.transaction.outputs[1]?.address || '';
+    const changeAmount = this.transaction.outputs[1]?.amount || 0;
+    
     // Build raw transaction
     const rawTx = await this.cardanoCli.buildTransaction(
       txIn,
       txOut,
-      this.transaction.outputs[1]?.address || '',
-      this.transaction.outputs[1]?.amount || 0,
+      changeAddress,
+      changeAmount,
       this.transaction.metadata || {}
     );
 
@@ -246,6 +260,7 @@ export async function createTransactionFromUtxo(
   debugger
   logger.info("Retrieving UTXOs for sender in hydra head");
   const utxos = await getUtxos(senderAddress, hydraHeadUrl);
+  logger.critical(`UTXOs: ${JSON.stringify(utxos)}`);
   const utxoKeys = Object.keys(utxos);
 
   if (utxoKeys.length > 0) {
@@ -258,16 +273,56 @@ export async function createTransactionFromUtxo(
   debugger
 
   const firstUtxo = utxos[utxoKeys[0]];
+  logger.critical(`First UTXO: ${JSON.stringify(firstUtxo)}`);
   const totalAmount = firstUtxo.value.lovelace;
+  logger.critical(`Total amount from UTXO: ${totalAmount}`);
+  logger.critical(`Amount to send: ${amount}`);
   const changeAmount = totalAmount - amount;
+  logger.critical(`Change amount: ${changeAmount}`);
   
+  // Double-check the UTXO still exists right before building
+  logger.critical("Double-checking UTXO before building transaction...");
+  const freshUtxos = await getUtxos(senderAddress, hydraHeadUrl);
+  logger.critical(`Fresh UTXOs: ${JSON.stringify(freshUtxos)}`);
+  
+  if (!freshUtxos[utxoKeys[0]]) {
+    logger.critical(`ERROR: UTXO ${utxoKeys[0]} no longer exists!`);
+    throw new Error(`UTXO ${utxoKeys[0]} no longer exists in Hydra head`);
+  }
+  
+  if (freshUtxos[utxoKeys[0]].value.lovelace !== totalAmount) {
+    logger.critical(`ERROR: UTXO value mismatch! Expected: ${totalAmount}, Found: ${freshUtxos[utxoKeys[0]].value.lovelace}`);
+    throw new Error(`UTXO value mismatch for ${utxoKeys[0]}`);
+  }
+  
+  logger.critical("UTXO validation passed, proceeding with transaction...");
+
   debugger
   const builder = new HydraTransactionBuilder();
-  builder
-    .addInput(utxoKeys[0])
-    .addOutput(recipientAddress, amount)
-    .addOutput(senderAddress.toBech32(), changeAmount)
-    .setFee(0);
+  builder.addInput(utxoKeys[0]);
+  
+  // Check if sending to self
+  if (recipientAddress === senderAddress.toBech32()) {
+    logger.critical("Sending to self - using single output with full UTXO amount");
+    builder.addOutput(recipientAddress, totalAmount);
+  } else {
+    logger.critical("Sending to different address - using recipient + change outputs");
+    builder.addOutput(recipientAddress, amount);
+    
+    // Only add change output if there's actually change
+    if (changeAmount > 0) {
+      logger.critical(`Adding change output: ${senderAddress.toBech32()} + ${changeAmount}`);
+      builder.addOutput(senderAddress.toBech32(), changeAmount);
+    } else {
+      logger.critical(`No change output needed (changeAmount: ${changeAmount})`);
+    }
+  }
+  
+  builder.setFee(0);
+
+  const txDetails = builder.getTransactionDetails();
+  logger.critical(`Final transaction inputs: ${JSON.stringify(txDetails.inputs)}`);
+  logger.critical(`Final transaction outputs: ${JSON.stringify(txDetails.outputs)}`);
 
   return builder;
 } 

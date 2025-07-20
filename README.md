@@ -66,7 +66,7 @@ The following tools will be installed automatically by the installation script:
 Start by cloning this repository and running the installation script:
 
 ```bash
-./install.sh
+make install
 ```
 
 The installation script:
@@ -77,10 +77,10 @@ The installation script:
 
 ## Setting Up Environment Variables
 
-The `set-env-vars.sh` script configures your environment by creating a `.env` file from `.env.example`, replacing placeholder paths with your actual project location, and setting up required directories for credentials, persistence, and transactions.
+The following command configures your environment by creating a `.env` file from `.env.example`, replacing placeholder paths with your actual project location, and setting up required directories for credentials, persistence, and transactions.
 
 ```bash
-./scripts/utils/set-env-vars.sh
+make env
 ```
 
 ## Setting Up Cardano Node
@@ -88,7 +88,7 @@ The `set-env-vars.sh` script configures your environment by creating a `.env` fi
 Once installation is complete, set up and start the Cardano node:
 
 ```bash
-./setup-cardano-node.sh
+make cardano-node
 ```
 
 This script:
@@ -99,7 +99,7 @@ This script:
 Monitor the synchronization status in a separate terminal:
 
 ```bash
-./scripts/utils/query-tip.sh
+make query-tip
 ```
 
 You'll see output similar to:
@@ -123,7 +123,7 @@ Wait until `syncProgress` reaches "100.00" before proceeding.
 Generate cryptographic credentials for preprod funding wallet:
 
 ```bash
-./setup-and-fund-nodes.sh
+make setup-funding-wallet
 ```
 
 This will create a Cardano key pair for the funding wallet and generate an address. **Preprod tADA** can be obtained from the [Cardano Testnet Faucet](https://docs.cardano.org/cardano-testnets/tools/faucet/) with this address as the recipient.
@@ -138,12 +138,26 @@ You can verify the funds have been received by the participants:
 
 
 ```bash
-./scripts/utils/query-node-funds.sh
+make query-demo-wallets
 ```
 
 Look for output showing the UTxOs at each address with their respective balances.
 
 ## Setting Up Hydra Nodes
+
+
+TODO: document
+```bash
+make demo-credentials
+```
+
+```bash
+make demo-hydra-keys
+```
+
+```bash
+make fund-demo
+```
 
 Since the Hydra key pairs were generated in the setup script, we can start the Hydra nodes.
 
@@ -151,12 +165,12 @@ Now start the Hydra nodes in separate terminal windows:
 
 For Alice:
 ```bash
-./start-alice-node.sh
+make alice-node
 ```
 
 For Bob:
 ```bash
-./start-bob-node.sh
+make bob-node
 ```
 
 These scripts:
@@ -171,6 +185,7 @@ Verify the nodes are running by connecting to their WebSocket APIs:
 websocat ws://127.0.0.1:4001 | jq  # For Alice
 websocat ws://127.0.0.1:4002 | jq  # For Bob
 ```
+
 
 You should see connection messages and a "Greetings" message with "headStatus": "Idle".
 
@@ -194,7 +209,7 @@ You'll see a `HeadIsInitializing` message in the WebSocket output.
 Next, commit funds to the head:
 
 ```bash
-./scripts/transactions/commit-funds.sh
+make commit-funds-demo
 ```
 
 This script:
@@ -223,9 +238,9 @@ In the first terminal, start the TUI interface:
 pnpm run tui
 ```
 
-In the second terminal, start the transaction stream viewer:
+In the second terminal, start message receiving TUI:
 ```bash
-pnpm run stream
+pnpm run receiver
 ```
 
 ### Using the Message Interface
@@ -285,7 +300,7 @@ This finalizes the head closure:
 Verify the final balances on layer 1:
 
 ```bash
-./scripts/utils/query-node-funds.sh
+make query-demo-wallets
 ```
 
 ## Cleaning Up
@@ -293,13 +308,19 @@ Verify the final balances on layer 1:
 Now that the testing sequence is complete, return any unused test ada to the funding wallet to be used again later:
 
 ```bash
-./scripts/utils/refund-funding-wallet.sh
+make refund-funding-wallet-demo
 ```
 
 This script:
 1. Gathers all remaining funds from Alice and Bob addresses
 2. Creates a transaction returning them to the testnet faucet
 3. Signs and submits the transaction
+
+To refund from your username's wallets, run this command:
+
+```bash
+make refund-funding-wallet-username
+```
 
 ## Advanced Configuration
 
