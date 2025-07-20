@@ -1,12 +1,12 @@
 {
   "devDependencies": {
     "@types/blessed": "^0.1.25",
-    "@types/node": "^22.13.5",
+    "@types/node": "^22.16.5",
     "@types/prompt-sync": "^4.2.3",
     "@types/react": "^18.2.55",
     "@types/ws": "^8.18.1",
-    "tsx": "^4.19.3",
-    "typescript": "^5.7.3"
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
   },
   "scripts": {
     "build": "tsc",
@@ -29,16 +29,21 @@
     "stream": "tsx src/adapters/watch_stream.ts",
     "test:metadata": "tsx tests/metadata.ts",
     "test:file": "tsx",
-    "guided-setup": "tsx src/guided-setup.ts"
+    "guided-setup": "tsx src/guided-setup.ts",
+    "helios-wallet-creator": "tsx src/helios-wallet-creator.ts",
+    "message-receiver": "tsx src/message-receiver.ts",
+    "xor-crypto-demo": "tsx src/xor-crypto-demo.ts",
+    "tictactoe-demo": "tsx src/tictactoe-demo.ts"
   },
   "dependencies": {
     "@emurgo/cardano-serialization-lib-nodejs": "^14.1.1",
+    "@helios-lang/cbor": "^0.3.1",
     "@helios-lang/codec-utils": "^0.3.4",
-    "@helios-lang/ledger": "^0.7.1",
-    "@helios-lang/tx-utils": "^0.6.0",
+    "@helios-lang/ledger": "^0.7.15",
+    "@helios-lang/tx-utils": "^0.6.22",
     "@hyperionbt/helios": "^0.16.7",
     "blessed": "^0.1.81",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.6.1",
     "http-proxy": "^1.18.1",
     "ink": "^4.4.1",
     "keypress": "^0.2.1",
@@ -46,7 +51,7 @@
     "prompt-sync": "^4.2.0",
     "react": "^18.2.0",
     "websocket": "^1.0.35",
-    "ws": "^8.18.2"
+    "ws": "^8.18.3"
   },
   "type": "module",
   "engines": {

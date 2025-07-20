@@ -25,3 +25,6 @@ Thumbs.db
 
 # Project specific
 infra/
+
+helios-wallets/
+wallet-backups/
