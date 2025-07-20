@@ -3,9 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { CardanoCliConfig, RawTransaction, SignedTransaction } from '../core/types/transaction';
 import { getConfig, getCardanoCliPath } from '../utils/config';
-import { Logger } from '../utils/logger';
-
-const logger = Logger.getInstance();
+import logger from '../utils/debugLogger';
 
 export class CardanoCli {
   private config: CardanoCliConfig;
@@ -29,7 +27,7 @@ export class CardanoCli {
     if (!fs.existsSync(this.tempDir)) {
       fs.mkdirSync(this.tempDir, { recursive: true });
     }
-    logger.info("Using cardano-cli at:", this.cardanoCliPath);
+    logger.info("Using cardano-cli at: " + this.cardanoCliPath);
   }
 
   private getTempFilePath(prefix: string): string {
@@ -42,12 +40,12 @@ export class CardanoCli {
         fs.unlinkSync(filePath);
       }
     } catch (error) {
-      logger.warn("Failed to cleanup temp file:", filePath, error);
+      logger.warning("Failed to cleanup temp file: " + filePath, { error });
     }
   }
 
   private async executeCommand(args: string[]): Promise<string> {
-    logger.debug("Executing command:", this.cardanoCliPath, args.join(' '));
+    logger.critical("Executing: " + this.cardanoCliPath + ' ' + args.join(' '));
     
     return new Promise((resolve, reject) => {
       const process = spawn(this.cardanoCliPath, args, { 
@@ -73,11 +71,11 @@ export class CardanoCli {
 
       process.on('close', (code) => {
         if (code !== 0) {
-          logger.error("Process exited with code:", code);
-          logger.error("Stderr:", stderr);
+          logger.error("Process exited with code: " + code);
+          logger.error("Stderr: " + stderr);
           reject(new Error(`Process exited with code ${code}: ${stderr}`));
         } else {
-          if (stderr) logger.warn("Command stderr:", stderr);
+          if (stderr) logger.warning("Command stderr: " + stderr);
           resolve(stdout.trim());
         }
       });
@@ -115,8 +113,15 @@ export class CardanoCli {
     args.push(
       '--metadata-json-file', metadataFile,
       '--fee', '0',
+      '--protocol-params-file', this.config.protocolParamsFile,
       '--out-file', outputFile
     );
+
+    logger.critical("=== CARDANO CLI DEBUG ===");
+    logger.critical("Full command: " + this.cardanoCliPath + ' ' + args.join(' '));
+    logger.critical("Transaction inputs: " + `--tx-in ${txIn}`);
+    logger.critical("Transaction outputs: " + `--tx-out ${txOut}` + (changeAmount > 0 ? ` --tx-out ${changeAddress}+${changeAmount}` : ''));
+    logger.critical("========================");
 
     try {
       await this.executeCommand(args);

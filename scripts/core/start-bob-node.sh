@@ -40,7 +40,7 @@ fi
 
 # Adjusts the fees and pricing mechanisms to zero, ensuring that transactions within the Hydra head incur no costs.
 cardano-cli query protocol-parameters \
-  | jq '.txFeeFixed = 0 |.txFeePerByte = 0 | .executionUnitPrices.priceMemory = 0 | .executionUnitPrices.priceSteps = 0' > ${PARAMS_DIR}/protocol-parameters.json
+  | jq '.maxTxSize = 1638400 | .txFeeFixed = 0 | .txFeePerByte = 0 | .executionUnitPrices.priceMemory = 0 | .executionUnitPrices.priceSteps = 0' > ${PARAMS_DIR}/protocol-parameters.json
 
 hydra-node \
   --node-id "bob-node" \

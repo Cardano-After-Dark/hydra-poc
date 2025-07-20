@@ -7,14 +7,15 @@ import * as readline from 'readline';
 import * as fs from 'fs';
 import { chunkMessage, MessageChunk } from '../utils/messageChunker';
 
-// Disable all logging
+// Disable all logging except critical, but save to file
 logger.configure({
-  showTimestamp: false,
+  showTimestamp: true,
   showCallStack: false,
   showCpuTime: false,
   showSection: false,
   showAttributes: false,
-  saveToFile: false
+  saveToFile: true,
+  logFilePath: path.join(process.cwd(), 'logs', `tui-debug-${new Date().toISOString().replace(/[:.]/g, '-')}.log`)
 });
 logger.setLevel(LogLevel.CRITICAL); // Only show critical errors (effectively disabling all logging)
 
@@ -115,8 +116,11 @@ async function sendMessage(text: string) {
   try {
     const config = getConfig();
     const userAddressFile = path.join(config.credentialsDir, `${username}/${username}-funds.addr`);
+    logger.critical(`User address file: ${userAddressFile}`);
     const senderAddress = Address.fromBech32(fs.readFileSync(userAddressFile, 'utf8').trim());
+    logger.critical(`Sender address: ${senderAddress.toBech32()}`);
     const recipientAddress = senderAddress.toBech32();
+    logger.critical(`Recipient address: ${recipientAddress}`);
     const amount = 1000000;
 
     // Create metadata with chunks for any message
