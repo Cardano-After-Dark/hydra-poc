@@ -30,6 +30,7 @@
     "test:metadata": "tsx tests/metadata.ts",
     "test:file": "tsx",
     "guided-setup": "tsx src/guided-setup.ts",
+    "helios-wallet-creator": "tsx src/helios-wallet-creator.ts",
     "message-receiver": "tsx src/message-receiver.ts",
     "xor-crypto-demo": "tsx src/xor-crypto-demo.ts"
   },
