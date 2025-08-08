@@ -8,11 +8,12 @@
       "skipLibCheck": true,
       "forceConsistentCasingInFileNames": true,
       "outDir": "./dist",
-      "rootDir": "./src",
+      "rootDir": ".",
       "declaration": true,
       "moduleResolution": "node",
-      "jsx": "react-jsx"
+      "jsx": "react-jsx",
+      "baseUrl": "."
     },
-    "include": ["src/**/*"],
+    "include": ["src/**/*", "tools/**/*"],
     "exclude": ["node_modules", "dist"]
   }
