@@ -33,7 +33,8 @@
     "helios-wallet-creator": "tsx src/helios-wallet-creator.ts",
     "message-receiver": "tsx src/message-receiver.ts",
     "xor-crypto-demo": "tsx src/xor-crypto-demo.ts",
-    "tictactoe-demo": "tsx src/tictactoe-demo.ts"
+    "tictactoe-demo": "tsx src/tictactoe-demo.ts",
+    "utxo-consolidator": "tsx src/utxo-consolidator.ts"
   },
   "dependencies": {
     "@emurgo/cardano-serialization-lib-nodejs": "^14.1.1",
