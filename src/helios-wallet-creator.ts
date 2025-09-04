@@ -14,9 +14,9 @@ import { config } from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import readline from 'readline';
-import { logger } from '../tools/debug/logger.js';
-import { HydraClientWrapper } from './hydra/hydra-client.js';
-import { HeliosWallet, heliosWallet, HeliosWalletInfo } from './wallets/helios-wallet.js';
+import { logger } from '../tools/debug/logger';
+import { HydraClientWrapper } from './hydra/hydra-client';
+import { HeliosWallet, heliosWallet, HeliosWalletInfo } from './wallets/helios-wallet';
 
 // Load environment variables
 config();
@@ -280,16 +280,15 @@ END OF BACKUP
    */
   private encryptBackup(data: string, key: string): string {
     const algorithm = 'aes-256-gcm';
-    const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipher(algorithm, key);
+    const iv = crypto.randomBytes(12); // recommended IV size for GCM
+    const keyBuf = crypto.createHash('sha256').update(key, 'utf8').digest(); // 32 bytes
 
-    let encrypted = cipher.update(data, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-
+    const cipher = crypto.createCipheriv(algorithm, keyBuf, iv);
+    const encryptedBuf = Buffer.concat([cipher.update(data, 'utf8'), cipher.final()]);
     const authTag = cipher.getAuthTag();
 
-    // Return IV + AuthTag + EncryptedData
-    return iv.toString('hex') + ':' + authTag.toString('hex') + ':' + encrypted;
+    // Return IV + AuthTag + EncryptedData (hex encoded)
+    return `${iv.toString('hex')}:${authTag.toString('hex')}:${encryptedBuf.toString('hex')}`;
   }
 
   /**
