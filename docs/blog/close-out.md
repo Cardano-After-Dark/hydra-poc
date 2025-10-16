@@ -17,7 +17,7 @@
 **Challenge:** _Cardano Use Cases & Concepts_ — grow real-world use cases through research, prototypes, and documentation.
 
 - **Demonstrate practical use of Hydra for real-time apps.**  
-    Achieved via two PoCs: (1) **App communication via transactions/metadata** inside a Hydra head; (2) **Group cryptography** (key agreement → encrypted sends → partial decryptions → reconstruction) driven over Hydra messages. The approach and results are documented in Articles **1** and **2**. [cardanoafterdark.io+1](https://cardanoafterdark.io/app-communication-using-transactions/)
+    Achieved via two PoCs: (1) **App communication via transactions/metadata** inside a Hydra head; (2) **Group cryptography** (key agreement → encrypted sends → partial decryptions → reconstruction) driven over Hydra messages. The approach and results are documented in Articles **1** and **2**.
     
 - **Publish guidance other builders can reuse.**  
     Achieved with three public articles (communication, cryptography, feasibility), plus a public repo with setup docs and scripts to reproduce the PoCs.
@@ -30,9 +30,9 @@
 
 ### Key achievements (collaboration & engagement)
 
-- **Open-sourced** Hydra PoC code, automation/scripts, and setup documentation to reproduce multi-node heads, messaging flows, and the crypto demo. [GitHub](https://github.com/Cardano-After-Dark/hydra-poc)
+- **Open-sourced** Hydra PoC code, automation/scripts, and setup documentation to reproduce multi-node heads, messaging flows, and the crypto demo.
     
-- Published **three articles** capturing patterns, trade-offs, and integration guidance for Hydra builders. [cardanoafterdark.io+2cardanoafterdark.io+2](https://cardanoafterdark.io/app-communication-using-transactions/)
+- Published **three articles** capturing patterns, trade-offs, and integration guidance for Hydra builders.
     
 - Added **milestone write-ups** in-repo under `docs/blog` (ms1, ms2, ms3) to keep technical readers inside the codebase (links below).
     
@@ -53,7 +53,7 @@
 ---
 ### Final thoughts / comments
 
-This case study shows Hydra’s usefulness beyond payments—toward **interactive, real-time decentralized applications**. By combining **transaction-based messaging** with **multi-party encryption**, teams can design apps that mix public, group-private, and sub-group communications—opening design space for gaming, auctions, and governance. The open code, articles, and in-repo milestone notes aim to make reproduction and extension straightforward. [GitHub+3cardanoafterdark.io+3cardanoafterdark.io+3](https://cardanoafterdark.io/app-communication-using-transactions/)
+This case study shows Hydra’s usefulness beyond payments—toward **interactive, real-time decentralized applications**. By combining **transaction-based messaging** with **multi-party encryption**, teams can design apps that mix public, group-private, and sub-group communications—opening design space for gaming, auctions, and governance. The open code, articles, and in-repo milestone notes aim to make reproduction and extension straightforward.
 
 ---
 
