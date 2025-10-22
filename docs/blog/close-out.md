@@ -8,7 +8,7 @@
 **Project Number:** 1300072  
 **Project Manager:** Seomon
 **Date Project Started:** 15.04.2025
-**Date Project Completed:** 16.04.2025
+**Date Project Completed:** 16.10.2025
 
 ---
 
